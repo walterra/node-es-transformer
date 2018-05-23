@@ -26,13 +26,13 @@ export function transformer({
 		index: indexName
 	}, (err, resp) => {
 		if (resp === false) {
-			createMapping(indexFile);
+			createMapping().then(indexFile);
 		} else {
 			if (deleteIndex === true) {
 				client.indices.delete({
 					index: indexName
 				}, (err, resp) => {
-					createMapping(indexFile);
+					createMapping().then(indexFile);
 				});
 			} else {
 				indexFile();

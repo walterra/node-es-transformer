@@ -1,5 +1,5 @@
 export function createMappingFactory({ client, indexName, mappings, verbose }) {
-  return (callback) => {
+  return () => (new Promise((resolve, reject) => {
     if (
       typeof mappings === 'object' &&
       mappings !== null
@@ -12,12 +12,14 @@ export function createMappingFactory({ client, indexName, mappings, verbose }) {
       }, (err, resp) => {
         if (err) {
           console.log('Error creating mapping', err);
+          reject();
+          return;
         }
         verbose && console.log('Created mapping', resp);
-        callback();
+        resolve();
       });
     } else {
-      callback();
+      resolve();
     }
-  }
+  }));
 }
