@@ -2,6 +2,8 @@ import fs from 'fs';
 import es from 'event-stream';
 import elasticsearch from 'elasticsearch';
 
+import { createMappingFactory } from './_create-mapping';
+
 export function transformer({
 	deleteIndex = false,
 	host = 'localhost',
@@ -18,42 +20,25 @@ export function transformer({
 		host: `${host}:${port}`
 	});
 
+	const createMapping = createMappingFactory({ client, indexName, mappings, verbose });
+
 	client.indices.exists({
 		index: indexName
 	}, (err, resp) => {
 		if (resp === false) {
-			createMapping();
+			createMapping(indexFile);
 		} else {
 			if (deleteIndex === true) {
 				client.indices.delete({
 					index: indexName
 				}, (err, resp) => {
-					createMapping();
+					createMapping(indexFile);
 				});
 			} else {
 				indexFile();
 			}
 		}
 	});
-
-	function createMapping() {
-		if (
-			typeof mappings === 'object' &&
-			mappings !== null
-		) {
-			client.indices.create({
-				index: indexName,
-				body: {
-					mappings
-				}
-			}, (err, resp) => {
-				console.log('create mapping', err, resp);
-				indexFile();
-			});
-		} else {
-			indexFile();
-		}
-	}
 
 	function indexFile() {
 		const docs = [];
