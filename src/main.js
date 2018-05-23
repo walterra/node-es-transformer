@@ -3,13 +3,15 @@ const es = require('event-stream');
 const elasticsearch = require('elasticsearch');
 
 export function transformer({
+	deleteIndex = false,
 	host = 'localhost',
 	port = '9200',
 	fileName,
 	indexName,
 	typeName,
 	mappings,
-	transform = (d) => d
+	transform,
+	verbose = true
 }) {
 
 	const client = new elasticsearch.Client({
@@ -22,24 +24,35 @@ export function transformer({
 		if (resp === false) {
 			createMapping();
 		} else {
-			client.indices.delete({
-				index: indexName
-			}, (err, resp) => {
-				createMapping();
-			});
+			if (deleteIndex === true) {
+				client.indices.delete({
+					index: indexName
+				}, (err, resp) => {
+					createMapping();
+				});
+			} else {
+				indexFile();
+			}
 		}
 	});
 
 	function createMapping() {
-		client.indices.create({
-			index: indexName,
-			body: {
-				mappings
-			}
-		}, (err, resp) => {
-			console.log('create mapping', err, resp);
+		if (
+			typeof mappings === 'object' &&
+			mappings !== null
+		) {
+			client.indices.create({
+				index: indexName,
+				body: {
+					mappings
+				}
+			}, (err, resp) => {
+				console.log('create mapping', err, resp);
+				indexFile();
+			});
+		} else {
 			indexFile();
-		});
+		}
 	}
 
 	function indexFile() {
@@ -53,7 +66,7 @@ export function transformer({
 					try {
 						const header = { index: { _index: indexName, _type: typeName } };
 
-						const doc = transform(line);
+						const doc = (typeof transform === 'function') ? transform(line) : line;
 
 						docs.push(header);
 						docs.push(doc);
@@ -69,11 +82,13 @@ export function transformer({
 					console.log('Error while reading file.', err);
 				})
 				.on('end', function () {
-					console.log('Read entire file.')
+					verbose && console.log('Read entire file.')
 					client.bulk({
 						body: docs
 					}, (err, resp) => {
-						console.log('Ingest:', err);
+						if (err) {
+							console.log('Ingest Error:', err);
+						}
 					});
 				})
 			);
