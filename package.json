@@ -4,6 +4,7 @@
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
+    "elasticsearch": "^15.0.0"
   },
   "devDependencies": {
     "rollup": "^0.46.0",
