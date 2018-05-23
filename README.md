@@ -1,10 +1,41 @@
+[![npm](https://img.shields.io/npm/v/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
+[![npm](https://img.shields.io/npm/l/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
+[![npm](https://img.shields.io/npm/dt/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
+
 # node-es-transformer
 
 A nodejs based library to (re)index and transform data from/to Elasticsearch.
 
 ## Getting started
 
+In your node-js project, add `node-es-transformer` as a dependency (`yarn add node-es-transformer` or `npm install node-es-transformer`).
 
+Use the library in your code like:
+
+```javascript
+const { transformer } = require('node-es-transformer');
+
+transformer({
+  fileName: 'filename.json',
+  indexName: 'my-index',
+  typeName: 'doc',
+  mappings: {
+    doc: {
+      properties: {
+        '@timestamp': {
+          type: 'date'
+        },
+        'field1': {
+          type: 'keyword'
+        },
+        'field2': {
+          type: 'keyword'
+        }
+      }
+    }
+  }
+});
+```
 
 ## Development
 
