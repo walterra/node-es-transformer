@@ -6,6 +6,8 @@
 
 A nodejs based library to (re)index and transform data from/to Elasticsearch.
 
+**This is experimental code, use at your own risk.**
+
 ## Getting started
 
 In your node-js project, add `node-es-transformer` as a dependency (`yarn add node-es-transformer` or `npm install node-es-transformer`).

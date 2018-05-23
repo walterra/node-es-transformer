@@ -1,6 +1,6 @@
 {
   "name": "node-es-transformer",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha1",
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
