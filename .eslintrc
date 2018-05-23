@@ -1,0 +1,10 @@
+{
+  "extends": "airbnb",
+  "env": {
+    "node": true
+  },
+  "plugins": [],
+  "rules": {
+    "linebreak-style": "off"
+  }
+}

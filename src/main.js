@@ -1,6 +1,6 @@
-const fs = require('fs');
-const es = require('event-stream');
-const elasticsearch = require('elasticsearch');
+import fs from 'fs';
+import es from 'event-stream';
+import elasticsearch from 'elasticsearch';
 
 export function transformer({
 	deleteIndex = false,
