@@ -8,6 +8,11 @@ A nodejs based library to (re)index and transform data from/to Elasticsearch.
 
 **This is experimental code, use at your own risk.**
 
+## Features
+
+- Buffering/Streaming for both reading and indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes.
+- While I'd generally recommend using [Logstash](https://www.elastic.co/products/logstash) and [filebeat](https://www.elastic.co/products/beats/filebeat) for established use cases, this tool may be of help especially in a JavaScript based setup for customized ingestion and data transformation use cases.
+
 ## Getting started
 
 In your node-js project, add `node-es-transformer` as a dependency (`yarn add node-es-transformer` or `npm install node-es-transformer`).
@@ -27,13 +32,22 @@ transformer({
         '@timestamp': {
           type: 'date'
         },
-        'field1': {
+        'first_name': {
           type: 'keyword'
         },
-        'field2': {
+        'last_name': {
+          type: 'keyword'
+        }
+        'full_name': {
           type: 'keyword'
         }
       }
+    }
+  },
+  transform(line) {
+    return {
+      ...line,
+      full_name: `${line.first_name} ${line.last_name}`
     }
   }
 });
