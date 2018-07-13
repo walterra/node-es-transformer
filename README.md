@@ -63,7 +63,7 @@ cd node-es-transformer
 yarn
 ```
 
-`yarn build` builds the library to `dist`, generating three files:
+`yarn build` builds the library to `dist`, generating two files:
 
 * `dist/node-es-transformer.cjs.js`
     A CommonJS bundle, suitable for use in Node.js, that `require`s the external dependency. This corresponds to the `"main"` field in package.json
