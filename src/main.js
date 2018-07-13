@@ -3,11 +3,13 @@ import es from 'event-stream';
 import elasticsearch from 'elasticsearch';
 
 import { createMappingFactory } from './_create-mapping';
+import { indexQueueFactory } from './_index-queue';
 
 export function transformer({
 	deleteIndex = false,
 	host = 'localhost',
 	port = '9200',
+	bufferSize = 1000,
 	fileName,
 	indexName,
 	typeName,
@@ -21,6 +23,7 @@ export function transformer({
 	});
 
 	const createMapping = createMappingFactory({ client, indexName, mappings, verbose });
+	const indexer = indexQueueFactory({ client, indexName, typeName, bufferSize, verbose });
 
 	client.indices.exists({
 		index: indexName
@@ -41,41 +44,36 @@ export function transformer({
 	});
 
 	function indexFile() {
-		const docs = [];
 		const s = fs.createReadStream(fileName)
 			.pipe(es.split())
 			.pipe(es.mapSync(function (line) {
 				s.pause();
+				try {
+					const doc = (typeof transform === 'function') ? transform(line) : line;
 
-				if (line) {
-					try {
-						const header = { index: { _index: indexName, _type: typeName } };
-
-						const doc = (typeof transform === 'function') ? transform(line) : line;
-
-						docs.push(header);
-						docs.push(doc);
-					} catch (e) {
-						console.log('error', e);
+					if (typeof doc === 'undefined') {
+						//console.log('doc invalid');
+						s.resume();
+						return undefined;
 					}
+
+					indexer.add(doc);
+				} catch (e) {
+					console.log('error', e);
 				}
 
-				// resume the readstream, possibly from a callback
-				s.resume();
 			})
 				.on('error', function (err) {
 					console.log('Error while reading file.', err);
 				})
 				.on('end', function () {
-					verbose && console.log('Read entire file.')
-					client.bulk({
-						body: docs
-					}, (err, resp) => {
-						if (err) {
-							console.log('Ingest Error:', err);
-						}
-					});
+					verbose && console.log('Read entire file.');
+					indexer.finish();
 				})
 			);
+
+		indexer.queueEmitter.on('resume', () => {
+			s.resume();
+		})
 	}
 }
