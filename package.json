@@ -13,7 +13,7 @@
   "license": "Apache-2.0",
   "author": "Walter Rafelsberger <walter@rafelsberger.at>",
   "contributors": [],
-  "version": "1.0.0-alpha1",
+  "version": "1.0.0-alpha2",
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
