@@ -6,12 +6,13 @@
 
 A nodejs based library to (re)index and transform data from/to Elasticsearch.
 
-**This is experimental code, use at your own risk.**
+**This is experimental code, use at your own risk. Nonetheless, I encourage you to give it a try so I can gather some feedback.**
 
 ## Features
 
-- Buffering/Streaming for both reading and indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes.
 - While I'd generally recommend using [Logstash](https://www.elastic.co/products/logstash) and [filebeat](https://www.elastic.co/products/beats/filebeat) for established use cases, this tool may be of help especially in a JavaScript based setup for customized ingestion and data transformation use cases.
+- Buffering/Streaming for both reading and indexing. Files are read using streaming and Elasticsearch ingestion is done using buffered bulk indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes. On a single machine running both `node-es-transformer` and Elasticsearch ingestion rates up to 20k documents/second were achieved (2,9 GHz Intel Core i7, 16GByte RAM, SSD).
+- Supports wildcards to ingest/transform a range of files in one go.
 
 ## Getting started
 
