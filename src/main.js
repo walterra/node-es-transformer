@@ -15,6 +15,7 @@ export function transformer({
 	indexName,
 	typeName,
 	mappings,
+	skipHeader = false,
 	transform,
 	verbose = true
 }) {
@@ -24,7 +25,7 @@ export function transformer({
 	});
 
 	const createMapping = createMappingFactory({ client, indexName, mappings, verbose });
-	const indexer = indexQueueFactory({ client, indexName, typeName, bufferSize, verbose });
+	const indexer = indexQueueFactory({ client, indexName, typeName, bufferSize, skipHeader, verbose });
 
 	client.indices.exists({
 		index: indexName
@@ -58,7 +59,6 @@ export function transformer({
 				s.pause();
 				try {
 					const doc = (typeof transform === 'function') ? transform(line) : line;
-
 					// if doc is undefined we'll skip indexing it
 					if (typeof doc === 'undefined') {
 						s.resume();

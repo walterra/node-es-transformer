@@ -8,6 +8,7 @@ export function indexQueueFactory({
   indexName,
   typeName = 'doc',
   bufferSize = 1000,
+  skipHeader = false,
   verbose = true
 }) {
   let buffer = [];
@@ -22,12 +23,12 @@ export function indexQueueFactory({
     if (ingesting === false) {
       const docs = queue.shift();
       ingesting = true;
-      verbose && console.log(`bulk ingest docs: ${docs.length}, queue length: ${queue.length}`);
+      verbose && console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
 
       client.bulk({
         body: docs
       }, (err, resp) => {
-        //console.log('error', err, resp);
+        // console.log('error', err, resp);
         ingesting = false;
         if (queue.length > 0) {
           ingest();
@@ -36,7 +37,7 @@ export function indexQueueFactory({
 
     }
 
-    //console.log(`ingest: queue.length ${queue.length}`);
+    // console.log(`ingest: queue.length ${queue.length}`);
     if (queue.length === 0) {
       queueEmitter.emit('resume');
     }
@@ -45,17 +46,19 @@ export function indexQueueFactory({
   }
 
   return {
-    add: (doc, cb = function() {}) => {
-      const header = { index: { _index: indexName, _type: typeName } };
-      buffer.push(header);
+    add: (doc) => {
+      if (!skipHeader) {
+        const header = { index: { _index: indexName, _type: typeName } };
+        buffer.push(header);
+      }
       buffer.push(doc);
 
-      //console.log(`add: queue.length ${queue.length}`);
+      // console.log(`add: queue.length ${queue.length}`);
       if (queue.length === 0) {
         queueEmitter.emit('resume');
       }
 
-      if (buffer.length >= bufferSize) {
+      if (buffer.length >= (bufferSize * 2)) {
         buffer = ingest(buffer);
       }
 
