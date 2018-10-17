@@ -53,6 +53,7 @@ export default function indexReaderFactory(indexer, sourceIndexName, transform, 
       // check to see if we have collected all of the docs
       if (response.hits.total === docsNum) {
         console.log('finished scrolling.');
+        indexer.finish();
         break;
       }
 
