@@ -19,6 +19,10 @@ export default function transformer({
   transform,
   verbose = true,
 }) {
+  if (typeof targetIndexName === 'undefined') {
+    throw Error('targetIndexName must be specified.');
+  }
+
   const client = new elasticsearch.Client({ host: `${host}:${port}` });
 
   const createMapping = createMappingFactory({
