@@ -1,21 +1,25 @@
-export function createMappingFactory({ client, indexName, mappings, verbose }) {
+export default function createMappingFactory({
+  client,
+  targetIndexName,
+  mappings,
+  verbose,
+}) {
   return () => (new Promise((resolve, reject) => {
+    console.log('targetIndexName', targetIndexName);
     if (
-      typeof mappings === 'object' &&
-      mappings !== null
+      typeof mappings === 'object'
+      && mappings !== null
     ) {
       client.indices.create({
-        index: indexName,
-        body: {
-          mappings
-        }
+        index: targetIndexName,
+        body: { mappings },
       }, (err, resp) => {
         if (err) {
           console.log('Error creating mapping', err);
           reject();
           return;
         }
-        verbose && console.log('Created mapping', resp);
+        if (verbose) console.log('Created mapping', resp);
         resolve();
       });
     } else {

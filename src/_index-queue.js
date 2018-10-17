@@ -3,16 +3,16 @@ const EventEmitter = require('events');
 const queueEmitter = new EventEmitter();
 
 // a simple helper queue to bulk index documents
-export function indexQueueFactory({
+export default function indexQueueFactory({
   client,
-  indexName,
+  targetIndexName,
   typeName = 'doc',
   bufferSize = 1000,
   skipHeader = false,
-  verbose = true
+  verbose = true,
 }) {
   let buffer = [];
-  let queue = [];
+  const queue = [];
   let ingesting = false;
 
   const ingest = (b) => {
@@ -23,18 +23,14 @@ export function indexQueueFactory({
     if (ingesting === false) {
       const docs = queue.shift();
       ingesting = true;
-      verbose && console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
+      if (verbose) console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
 
-      client.bulk({
-        body: docs
-      }, (err, resp) => {
-        // console.log('error', err, resp);
+      client.bulk({ body: docs }, () => {
         ingesting = false;
         if (queue.length > 0) {
           ingest();
         }
       });
-
     }
 
     // console.log(`ingest: queue.length ${queue.length}`);
@@ -43,12 +39,12 @@ export function indexQueueFactory({
     }
 
     return [];
-  }
+  };
 
   return {
     add: (doc) => {
       if (!skipHeader) {
-        const header = { index: { _index: indexName, _type: typeName } };
+        const header = { index: { _index: targetIndexName, _type: typeName } };
         buffer.push(header);
       }
       buffer.push(doc);
@@ -61,11 +57,10 @@ export function indexQueueFactory({
       if (buffer.length >= (bufferSize * 2)) {
         buffer = ingest(buffer);
       }
-
     },
     finish: () => {
       buffer = ingest(buffer);
     },
-    queueEmitter
+    queueEmitter,
   };
-};
+}

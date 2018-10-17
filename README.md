@@ -20,6 +20,8 @@ In your node-js project, add `node-es-transformer` as a dependency (`yarn add no
 
 Use the library in your code like:
 
+### Read from a file
+
 ```javascript
 const { transformer } = require('node-es-transformer');
 
@@ -53,6 +55,44 @@ transformer({
   }
 });
 ```
+
+### Read from another index
+
+```javascript
+const { transformer } = require('node-es-transformer');
+
+transformer({
+  sourceIndexName: 'my-source-index',
+  targetIndexName: 'my-target-index',
+  typeName: 'doc',
+  mappings: {
+    doc: {
+      properties: {
+        '@timestamp': {
+          type: 'date'
+        },
+        'first_name': {
+          type: 'keyword'
+        },
+        'last_name': {
+          type: 'keyword'
+        }
+        'full_name': {
+          type: 'keyword'
+        }
+      }
+    }
+  },
+  transform(doc) {
+    return {
+      ...doc,
+      full_name: `${line.first_name} ${line.last_name}`
+    }
+  }
+});
+```
+
+
 
 ## Development
 
