@@ -23,7 +23,7 @@ Use the library in your code like:
 ### Read from a file
 
 ```javascript
-const { transformer } = require('node-es-transformer');
+const transformer = require('node-es-transformer');
 
 transformer({
   fileName: 'filename.json',
@@ -59,7 +59,7 @@ transformer({
 ### Read from another index
 
 ```javascript
-const { transformer } = require('node-es-transformer');
+const transformer = require('node-es-transformer');
 
 transformer({
   sourceIndexName: 'my-source-index',
