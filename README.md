@@ -25,7 +25,7 @@ const { transformer } = require('node-es-transformer');
 
 transformer({
   fileName: 'filename.json',
-  indexName: 'my-index',
+  targetIndexName: 'my-index',
   typeName: 'doc',
   mappings: {
     doc: {

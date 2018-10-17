@@ -12,7 +12,7 @@ export function transformer({
 	port = '9200',
 	bufferSize = 1000,
 	fileName,
-	indexName,
+	targetIndexName,
 	typeName,
 	mappings,
 	skipHeader = false,
@@ -24,18 +24,18 @@ export function transformer({
 		host: `${host}:${port}`
 	});
 
-	const createMapping = createMappingFactory({ client, indexName, mappings, verbose });
-	const indexer = indexQueueFactory({ client, indexName, typeName, bufferSize, skipHeader, verbose });
+	const createMapping = createMappingFactory({ client, targetIndexName, mappings, verbose });
+	const indexer = indexQueueFactory({ client, targetIndexName, typeName, bufferSize, skipHeader, verbose });
 
 	client.indices.exists({
-		index: indexName
+		index: targetIndexName
 	}, (err, resp) => {
 		if (resp === false) {
 			createMapping().then(indexFile);
 		} else {
 			if (deleteIndex === true) {
 				client.indices.delete({
-					index: indexName
+					index: targetIndexName
 				}, (err, resp) => {
 					createMapping().then(indexFile);
 				});
