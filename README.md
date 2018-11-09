@@ -110,7 +110,21 @@ transformer({
 });
 ```
 
+### Options
 
+- `deleteIndex`:  Setting to automatically delete an existing index, default is `false`.
+- `host`: Elasticsearch host, defaults to `localhost`.
+- `port`: Elasticsearch port, defaults to `9200`.
+- `bufferSize`: The amount of documents inserted with each Elasticsearch bulk insert request, default is `1000`.
+- `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` is not allowed.
+- `splitRegex`: Custom line split regex, defaults to `/\n/`.
+- `sourceIndexName`: The source Elasticsearch to reindex from. If this is set, `fileName` is not allowed.
+- `targetIndexName`: The target Elasticsearch index where documents will be indexed.
+- `typeName`: Elasticsearch document type name.
+- `mappings`: Elasticsearch document mapping.
+- `skipHeader`: If true, skips the first line of the source file. Defaults to `false`.
+- `transform(line)`: A callback function which allows the transformation of a source line into one or several documents.
+- `verbose`: Logging verbosity, defaults to `true`
 
 ## Development
 
