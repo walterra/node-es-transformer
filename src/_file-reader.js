@@ -2,11 +2,11 @@ import fs from 'fs';
 import es from 'event-stream';
 import glob from 'glob';
 
-export default function fileReaderFactory(indexer, fileName, transform, verbose) {
+export default function fileReaderFactory(indexer, fileName, transform, splitRegex, verbose) {
   function startIndex(files) {
     const file = files.shift();
     const s = fs.createReadStream(file)
-      .pipe(es.split())
+      .pipe(es.split(splitRegex))
       .pipe(es.mapSync((line) => {
         s.pause();
         try {

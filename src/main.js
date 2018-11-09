@@ -11,6 +11,7 @@ export default function transformer({
   port = '9200',
   bufferSize = 1000,
   fileName,
+  splitRegex = /\n/,
   sourceIndexName,
   targetIndexName,
   typeName,
@@ -42,7 +43,7 @@ export default function transformer({
     }
 
     if (typeof fileName !== 'undefined') {
-      return fileReaderFactory(indexer, fileName, transform, verbose);
+      return fileReaderFactory(indexer, fileName, transform, splitRegex, verbose);
     }
 
     if (typeof sourceIndexName !== 'undefined') {
