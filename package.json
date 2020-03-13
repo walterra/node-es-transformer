@@ -23,7 +23,7 @@
     "glob": "7.1.2"
   },
   "devDependencies": {
-    "acorn": "6.0.0",
+    "acorn": "6.4.1",
     "eslint": "4.19.1",
     "eslint-config-airbnb": "17.1.0",
     "eslint-plugin-jsx-a11y": "6.1.1",
