@@ -19,6 +19,7 @@ export default [
     plugins: [
       buble({
         exclude: ['node_modules/**'],
+        transforms: { asyncAwait: false },
       }),
     ],
   },

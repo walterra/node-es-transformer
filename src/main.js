@@ -9,12 +9,13 @@ export default function transformer({
   deleteIndex = false,
   host = 'localhost',
   port = '9200',
+  targetHost,
+  targetPort,
   bufferSize = 1000,
   fileName,
   splitRegex = /\n/,
   sourceIndexName,
   targetIndexName,
-  typeName,
   mappings,
   skipHeader = false,
   transform,
@@ -24,13 +25,15 @@ export default function transformer({
     throw Error('targetIndexName must be specified.');
   }
 
-  const client = new elasticsearch.Client({ host: `${host}:${port}` });
+  const sourceClient = new elasticsearch.Client({ host: `${host}:${port}` });
+  const targetClient = new elasticsearch.Client({ host: `${typeof targetHost === 'string' ? targetHost : host}:${typeof targetPort === 'string' ? targetPort : port}` });
+
 
   const createMapping = createMappingFactory({
-    client, targetIndexName, mappings, verbose,
+    targetClient, targetIndexName, mappings, verbose,
   });
   const indexer = indexQueueFactory({
-    client, targetIndexName, typeName, bufferSize, skipHeader, verbose,
+    targetClient, targetIndexName, bufferSize, skipHeader, verbose,
   });
 
   function getReader() {
@@ -47,7 +50,7 @@ export default function transformer({
     }
 
     if (typeof sourceIndexName !== 'undefined') {
-      return indexReaderFactory(indexer, sourceIndexName, transform, client);
+      return indexReaderFactory(indexer, sourceIndexName, transform, sourceClient);
     }
 
     return null;
@@ -55,11 +58,11 @@ export default function transformer({
 
   const reader = getReader();
 
-  client.indices.exists({ index: targetIndexName }, (err, resp) => {
+  targetClient.indices.exists({ index: targetIndexName }, (err, resp) => {
     if (resp === false) {
       createMapping().then(reader);
     } else if (deleteIndex === true) {
-      client.indices.delete({ index: targetIndexName }, () => {
+      targetClient.indices.delete({ index: targetIndexName }, () => {
         createMapping().then(reader);
       });
     } else {

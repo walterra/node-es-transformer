@@ -6,7 +6,6 @@ const queueEmitter = new EventEmitter();
 export default function indexQueueFactory({
   client,
   targetIndexName,
-  typeName = 'doc',
   bufferSize = 1000,
   skipHeader = false,
   verbose = true,
@@ -44,7 +43,7 @@ export default function indexQueueFactory({
   return {
     add: (doc) => {
       if (!skipHeader) {
-        const header = { index: { _index: targetIndexName, _type: typeName } };
+        const header = { index: { _index: targetIndexName } };
         buffer.push(header);
       }
       buffer.push(doc);

@@ -46,9 +46,8 @@ const transformer = require('node-es-transformer');
 transformer({
   fileName: 'filename.json',
   targetIndexName: 'my-index',
-  typeName: 'doc',
   mappings: {
-    doc: {
+    _doc: {
       properties: {
         '@timestamp': {
           type: 'date'
@@ -82,9 +81,8 @@ const transformer = require('node-es-transformer');
 transformer({
   sourceIndexName: 'my-source-index',
   targetIndexName: 'my-target-index',
-  typeName: 'doc',
   mappings: {
-    doc: {
+    _doc: {
       properties: {
         '@timestamp': {
           type: 'date'
@@ -120,7 +118,6 @@ transformer({
 - `splitRegex`: Custom line split regex, defaults to `/\n/`.
 - `sourceIndexName`: The source Elasticsearch to reindex from. If this is set, `fileName` is not allowed.
 - `targetIndexName`: The target Elasticsearch index where documents will be indexed.
-- `typeName`: Elasticsearch document type name.
 - `mappings`: Elasticsearch document mapping.
 - `skipHeader`: If true, skips the first line of the source file. Defaults to `false`.
 - `transform(line)`: A callback function which allows the transformation of a source line into one or several documents.
