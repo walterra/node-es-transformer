@@ -12,7 +12,6 @@ If you're looking for a nodejs based tool which allows you to ingest large CSV/J
 
 While I'd generally recommend using [Logstash](https://www.elastic.co/products/logstash), [filebeat](https://www.elastic.co/products/beats/filebeat) or [Ingest Nodes](https://www.elastic.co/guide/en/elasticsearch/reference/master/ingest.html) for established use cases, this tool may be of help especially if you feel more at home in the JavaScript/nodejs universe and have use cases with customized ingestion and data transformation needs.
 
-
 **This is experimental code, use at your own risk. Nonetheless, I encourage you to give it a try so I can gather some feedback.**
 
 ### So why is this still _alpha_?
@@ -21,13 +20,13 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 - The code needs some more safety measures to avoid some possible accidental data loss scenarios.
 - No test coverage yet.
 
-----
+---
 
 Now that we've talked about the caveats, let's have a look what you actually get with this tool:
 
 ## Features
 
-- Buffering/Streaming for both reading and indexing. Files are read using streaming and Elasticsearch ingestion is done using buffered bulk indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes. On a single machine running both `node-es-transformer` and Elasticsearch ingestion rates up to 20k documents/second were achieved (2,9 GHz Intel Core i7, 16GByte RAM, SSD). 
+- Buffering/Streaming for both reading and indexing. Files are read using streaming and Elasticsearch ingestion is done using buffered bulk indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes. On a single machine running both `node-es-transformer` and Elasticsearch ingestion rates up to 20k documents/second were achieved (2,9 GHz Intel Core i7, 16GByte RAM, SSD).
 - Supports wildcards to ingest/transform a range of files in one go.
 - Supports fetching documents from existing indices using search/scroll. This allows you to reindex with custom data transformations just using JavaScript in the `transform` callback.
 - The `transform` callback gives you each source document, but you can split it up in multiple ones and return an array of documents. An example use case for this: Each source document is a Tweet and you want to transform that into an entity centric index based on Hashtags.
@@ -81,6 +80,7 @@ const transformer = require('node-es-transformer');
 transformer({
   sourceIndexName: 'my-source-index',
   targetIndexName: 'my-target-index',
+  // optional, if you skip mappings, they will be fetched from the source index.
   mappings: {
     _doc: {
       properties: {
@@ -110,9 +110,13 @@ transformer({
 
 ### Options
 
-- `deleteIndex`:  Setting to automatically delete an existing index, default is `false`.
-- `host`: Elasticsearch host, defaults to `localhost`.
-- `port`: Elasticsearch port, defaults to `9200`.
+- `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
+- `protocol`/`targetProtocol`: Elasticsearch protocol, defaults to `http`.
+- `host`/`targetHost`: Elasticsearch host, defaults to `localhost`.
+- `port`/`targetPort`: Elasticsearch port, defaults to `9200`.
+- `auth`/`targetAuth`: Optional Elasticsearch authorization object, for example `{ username: 'elastic', password: 'changeme'}`.
+- `rejectUnauthorized`: Elasticsearch TLS option, defaults to `true`.
+- `ca`: Optional path to certificate used for TLS configuraiton.
 - `bufferSize`: The amount of documents inserted with each Elasticsearch bulk insert request, default is `1000`.
 - `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` is not allowed.
 - `splitRegex`: Custom line split regex, defaults to `/\n/`.
@@ -135,10 +139,10 @@ yarn
 
 `yarn build` builds the library to `dist`, generating two files:
 
-* `dist/node-es-transformer.cjs.js`
-    A CommonJS bundle, suitable for use in Node.js, that `require`s the external dependency. This corresponds to the `"main"` field in package.json
-* `dist/node-es-transformer.esm.js`
-    an ES module bundle, suitable for use in other people's libraries and applications, that `import`s the external dependency. This corresponds to the `"module"` field in package.json
+- `dist/node-es-transformer.cjs.js`
+  A CommonJS bundle, suitable for use in Node.js, that `require`s the external dependency. This corresponds to the `"main"` field in package.json
+- `dist/node-es-transformer.esm.js`
+  an ES module bundle, suitable for use in other people's libraries and applications, that `import`s the external dependency. This corresponds to the `"module"` field in package.json
 
 `yarn dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
 
