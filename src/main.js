@@ -122,4 +122,6 @@ export default async function transformer({
   } finally {
     // targetClient.close();
   }
+
+  return { events: indexer.queueEmitter };
 }

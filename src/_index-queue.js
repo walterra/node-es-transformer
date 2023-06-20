@@ -62,9 +62,10 @@ export default function indexQueueFactory({
         buffer = [];
       }
     },
-    finish: () => {
-      ingest(buffer);
+    finish: async () => {
+      await ingest(buffer);
       buffer = [];
+      queueEmitter.emit('finish');
     },
     queueEmitter,
   };

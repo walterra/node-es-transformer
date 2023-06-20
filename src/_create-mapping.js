@@ -7,22 +7,24 @@ export default function createMappingFactory({
   verbose,
 }) {
   return async () => {
-    if (sourceClient && sourceIndexName && typeof mappings === 'undefined') {
+    let targetMappings = mappings;
+
+    if (sourceClient && sourceIndexName && typeof targetMappings === 'undefined') {
       try {
         const mapping = await sourceClient.indices.getMapping({ index: sourceIndexName });
-        mappings = mapping[sourceIndexName].mappings;
+        targetMappings = mapping[sourceIndexName].mappings;
       } catch (err) {
         console.log('Error reading source mapping', err);
         return;
       }
     }
 
-    if (typeof mappings === 'object' && mappings !== null) {
+    if (typeof targetMappings === 'object' && targetMappings !== null) {
       try {
         const resp = await targetClient.indices.create(
           {
             index: targetIndexName,
-            body: { mappings },
+            body: { mappings: targetMappings },
           },
         );
         if (verbose) console.log('Created target mapping', resp);
