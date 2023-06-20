@@ -20,7 +20,7 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
           // the transform callback may return an array of docs so we can emit
           // multiple docs from a single line
           if (Array.isArray(doc)) {
-            doc.forEach(d => indexer.add(d));
+            doc.forEach((d) => indexer.add(d));
             return;
           }
 

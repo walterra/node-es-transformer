@@ -4,7 +4,7 @@ const queueEmitter = new EventEmitter();
 
 // a simple helper queue to bulk index documents
 export default function indexQueueFactory({
-  client,
+  targetClient: client,
   targetIndexName,
   bufferSize = 1000,
   skipHeader = false,
@@ -14,30 +14,34 @@ export default function indexQueueFactory({
   const queue = [];
   let ingesting = false;
 
-  const ingest = (b) => {
+  const ingest = async (b) => {
     if (typeof b !== 'undefined') {
       queue.push(b);
+      queueEmitter.emit('queue-size', queue.length);
     }
 
     if (ingesting === false) {
       const docs = queue.shift();
+      queueEmitter.emit('queue-size', queue.length);
       ingesting = true;
       if (verbose) console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
 
-      client.bulk({ body: docs }, () => {
+      try {
+        await client.bulk({ body: docs });
         ingesting = false;
         if (queue.length > 0) {
           ingest();
         }
-      });
+      } catch (err) {
+        console.log('bulk index error', err);
+      }
     }
 
     // console.log(`ingest: queue.length ${queue.length}`);
     if (queue.length === 0) {
+      queueEmitter.emit('queue-size', 0);
       queueEmitter.emit('resume');
     }
-
-    return [];
   };
 
   return {
@@ -54,11 +58,13 @@ export default function indexQueueFactory({
       }
 
       if (buffer.length >= (bufferSize * 2)) {
-        buffer = ingest(buffer);
+        ingest(buffer);
+        buffer = [];
       }
     },
     finish: () => {
-      buffer = ingest(buffer);
+      ingest(buffer);
+      buffer = [];
     },
     queueEmitter,
   };

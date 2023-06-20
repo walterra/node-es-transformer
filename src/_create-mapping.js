@@ -1,29 +1,34 @@
 export default function createMappingFactory({
-  client,
+  sourceClient,
+  sourceIndexName,
+  targetClient,
   targetIndexName,
   mappings,
   verbose,
 }) {
-  return () => (new Promise((resolve, reject) => {
-    console.log('targetIndexName', targetIndexName);
-    if (
-      typeof mappings === 'object'
-      && mappings !== null
-    ) {
-      client.indices.create({
-        index: targetIndexName,
-        body: { mappings },
-      }, (err, resp) => {
-        if (err) {
-          console.log('Error creating mapping', err);
-          reject();
-          return;
-        }
-        if (verbose) console.log('Created mapping', resp);
-        resolve();
-      });
-    } else {
-      resolve();
+  return async () => {
+    if (sourceClient && sourceIndexName && typeof mappings === 'undefined') {
+      try {
+        const mapping = await sourceClient.indices.getMapping({ index: sourceIndexName });
+        mappings = mapping[sourceIndexName].mappings;
+      } catch (err) {
+        console.log('Error reading source mapping', err);
+        return;
+      }
     }
-  }));
+
+    if (typeof mappings === 'object' && mappings !== null) {
+      try {
+        const resp = await targetClient.indices.create(
+          {
+            index: targetIndexName,
+            body: { mappings },
+          },
+        );
+        if (verbose) console.log('Created target mapping', resp);
+      } catch (err) {
+        console.log('Error creating target mapping', err);
+      }
+    }
+  };
 }
