@@ -7,16 +7,8 @@ import indexReaderFactory from './_index-reader';
 
 export default async function transformer({
   deleteIndex = false,
-  protocol = 'http',
-  host = 'localhost',
-  port = '9200',
-  auth,
-  rejectUnauthorized = true,
-  ca,
-  targetProtocol,
-  targetHost,
-  targetPort,
-  targetAuth,
+  sourceClientConfig,
+  targetClientConfig,
   bufferSize = 1000,
   fileName,
   splitRegex = /\n/,
@@ -31,21 +23,14 @@ export default async function transformer({
     throw Error('targetIndexName must be specified.');
   }
 
-  const sourceNode = `${protocol}://${host}:${port}`;
-  const sourceClient = new elasticsearch.Client({
-    node: sourceNode,
-    auth,
-    tls: { ca, rejectUnauthorized },
-  });
+  const defaultClientConfig = {
+    node: 'http://localhost:9200',
+  };
 
-  const targetNode = `${typeof targetProtocol === 'string' ? targetProtocol : protocol}://${typeof targetHost === 'string' ? targetHost : host}:${
-    typeof targetPort === 'string' ? targetPort : port
-  }`;
-  const targetClient = new elasticsearch.Client({
-    node: targetNode,
-    auth: targetAuth !== undefined ? targetAuth : auth,
-    tls: { ca, rejectUnauthorized },
-  });
+  const sourceClient = new elasticsearch.Client(sourceClientConfig || defaultClientConfig);
+  const targetClient = new elasticsearch.Client(
+    targetClientConfig || sourceClientConfig || defaultClientConfig,
+  );
 
   const createMapping = createMappingFactory({
     sourceClient,

@@ -46,20 +46,18 @@ transformer({
   fileName: 'filename.json',
   targetIndexName: 'my-index',
   mappings: {
-    _doc: {
-      properties: {
-        '@timestamp': {
-          type: 'date'
-        },
-        'first_name': {
-          type: 'keyword'
-        },
-        'last_name': {
-          type: 'keyword'
-        }
-        'full_name': {
-          type: 'keyword'
-        }
+    properties: {
+      '@timestamp': {
+        type: 'date'
+      },
+      'first_name': {
+        type: 'keyword'
+      },
+      'last_name': {
+        type: 'keyword'
+      }
+      'full_name': {
+        type: 'keyword'
       }
     }
   },
@@ -82,20 +80,18 @@ transformer({
   targetIndexName: 'my-target-index',
   // optional, if you skip mappings, they will be fetched from the source index.
   mappings: {
-    _doc: {
-      properties: {
-        '@timestamp': {
-          type: 'date'
-        },
-        'first_name': {
-          type: 'keyword'
-        },
-        'last_name': {
-          type: 'keyword'
-        }
-        'full_name': {
-          type: 'keyword'
-        }
+    properties: {
+      '@timestamp': {
+        type: 'date'
+      },
+      'first_name': {
+        type: 'keyword'
+      },
+      'last_name': {
+        type: 'keyword'
+      }
+      'full_name': {
+        type: 'keyword'
       }
     }
   },
@@ -111,16 +107,11 @@ transformer({
 ### Options
 
 - `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
-- `protocol`/`targetProtocol`: Elasticsearch protocol, defaults to `http`.
-- `host`/`targetHost`: Elasticsearch host, defaults to `localhost`.
-- `port`/`targetPort`: Elasticsearch port, defaults to `9200`.
-- `auth`/`targetAuth`: Optional Elasticsearch authorization object, for example `{ username: 'elastic', password: 'changeme'}`.
-- `rejectUnauthorized`: Elasticsearch TLS option, defaults to `true`.
-- `ca`: Optional path to certificate used for TLS configuraiton.
+- `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`.
 - `bufferSize`: The amount of documents inserted with each Elasticsearch bulk insert request, default is `1000`.
 - `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` is not allowed.
 - `splitRegex`: Custom line split regex, defaults to `/\n/`.
-- `sourceIndexName`: The source Elasticsearch to reindex from. If this is set, `fileName` is not allowed.
+- `sourceIndexName`: The source Elasticsearch index to reindex from. If this is set, `fileName` is not allowed.
 - `targetIndexName`: The target Elasticsearch index where documents will be indexed.
 - `mappings`: Elasticsearch document mapping.
 - `skipHeader`: If true, skips the first line of the source file. Defaults to `false`.
