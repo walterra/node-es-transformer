@@ -395,7 +395,7 @@ doctrine@^3.0.0:
 
 duplexer@~0.1.1:
   version "0.1.1"
-  resolved "http://registry.npmjs.org/duplexer/-/duplexer-0.1.1.tgz"
+  resolved "https://registry.npmjs.org/duplexer/-/duplexer-0.1.1.tgz"
   integrity sha1-rOb/gIwc5mtX0ev5eXessCM0z8E=
 
 emoji-regex@^8.0.0:
@@ -703,7 +703,7 @@ esutils@^2.0.2:
 
 event-stream@3.3.4:
   version "3.3.4"
-  resolved "http://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz"
+  resolved "https://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz"
   integrity sha1-SrTJoPWlTbkzi0w02Gv86PSzVXE=
   dependencies:
     duplexer "~0.1.1"
@@ -1183,7 +1183,7 @@ magic-string@^0.25.2:
 
 map-stream@~0.1.0:
   version "0.1.0"
-  resolved "http://registry.npmjs.org/map-stream/-/map-stream-0.1.0.tgz"
+  resolved "https://registry.npmjs.org/map-stream/-/map-stream-0.1.0.tgz"
   integrity sha1-5WqpTEyAVaFkBKBnS3jyFffI4ZQ=
 
 minimatch@^3.0.4, minimatch@^3.1.1, minimatch@^3.1.2:
@@ -1321,7 +1321,7 @@ path-parse@^1.0.5, path-parse@^1.0.7:
 
 pause-stream@0.0.11:
   version "0.0.11"
-  resolved "http://registry.npmjs.org/pause-stream/-/pause-stream-0.0.11.tgz"
+  resolved "https://registry.npmjs.org/pause-stream/-/pause-stream-0.0.11.tgz"
   integrity sha1-/lo0sMvOErWqaitAPuLnO2AvFEU=
   dependencies:
     through "~2.3"
@@ -1550,14 +1550,14 @@ sourcemap-codec@^1.4.4:
 
 split@0.3:
   version "0.3.3"
-  resolved "http://registry.npmjs.org/split/-/split-0.3.3.tgz"
+  resolved "https://registry.npmjs.org/split/-/split-0.3.3.tgz"
   integrity sha1-zQ7qXmOiEd//frDwkcQTPi0N0o8=
   dependencies:
     through "2"
 
 stream-combiner@~0.0.4:
   version "0.0.4"
-  resolved "http://registry.npmjs.org/stream-combiner/-/stream-combiner-0.0.4.tgz"
+  resolved "https://registry.npmjs.org/stream-combiner/-/stream-combiner-0.0.4.tgz"
   integrity sha1-TV5DPBhSYd3mI8o/RMWGvPXErRQ=
   dependencies:
     duplexer "~0.1.1"
@@ -1660,7 +1660,7 @@ text-table@^0.2.0:
 
 through@2, through@~2.3, through@~2.3.1:
   version "2.3.8"
-  resolved "http://registry.npmjs.org/through/-/through-2.3.8.tgz"
+  resolved "https://registry.npmjs.org/through/-/through-2.3.8.tgz"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
 tsconfig-paths@^3.14.1:
@@ -1787,9 +1787,9 @@ which@^2.0.1:
     isexe "^2.0.0"
 
 word-wrap@^1.2.3:
-  version "1.2.3"
-  resolved "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.3.tgz"
-  integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.4.tgz#cb4b50ec9aca570abd1f52f33cd45b6c61739a9f"
+  integrity sha512-2V81OA4ugVo5pRo46hAoD2ivUJx8jXmWXfUkY4KFNw0hEptvN0QfH3K4nHiwzGeKl5rFKedV48QVoqYavy4YpA==
 
 wrappy@1:
   version "1.0.2"
