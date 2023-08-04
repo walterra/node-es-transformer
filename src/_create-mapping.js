@@ -4,10 +4,11 @@ export default function createMappingFactory({
   targetClient,
   targetIndexName,
   mappings,
+  mappingsOverride,
   verbose,
 }) {
   return async () => {
-    let targetMappings = mappings;
+    let targetMappings = mappingsOverride ? undefined : mappings;
 
     if (sourceClient && sourceIndexName && typeof targetMappings === 'undefined') {
       try {
@@ -20,6 +21,16 @@ export default function createMappingFactory({
     }
 
     if (typeof targetMappings === 'object' && targetMappings !== null) {
+      if (mappingsOverride) {
+        targetMappings = {
+          ...targetMappings,
+          properties: {
+            ...targetMappings.properties,
+            ...mappings,
+          },
+        };
+      }
+
       try {
         const resp = await targetClient.indices.create(
           {

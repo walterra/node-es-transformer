@@ -15,6 +15,7 @@ export default async function transformer({
   sourceIndexName,
   targetIndexName,
   mappings,
+  mappingsOverride = false,
   skipHeader = false,
   transform,
   verbose = true,
@@ -38,6 +39,7 @@ export default async function transformer({
     targetClient,
     targetIndexName,
     mappings,
+    mappingsOverride,
     verbose,
   });
   const indexer = indexQueueFactory({

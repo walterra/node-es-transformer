@@ -20,6 +20,7 @@ export default [
       buble({
         exclude: ['node_modules/**'],
         transforms: { asyncAwait: false },
+        objectAssign: 'Object.assign',
       }),
     ],
   },
