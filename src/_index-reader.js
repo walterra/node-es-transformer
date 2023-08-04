@@ -5,7 +5,7 @@ const MAX_QUEUE_SIZE = 5;
 // create a new progress bar instance and use shades_classic theme
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
-export default function indexReaderFactory(indexer, sourceIndexName, transform, client) {
+export default function indexReaderFactory(indexer, sourceIndexName, transform, client, query) {
   return async function indexReader() {
     const responseQueue = [];
     let docsNum = 0;
@@ -15,6 +15,7 @@ export default function indexReaderFactory(indexer, sourceIndexName, transform, 
         index: sourceIndexName,
         scroll: '30s',
         size: 10000,
+        query,
       });
     }
 

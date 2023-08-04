@@ -16,6 +16,7 @@ export default async function transformer({
   targetIndexName,
   mappings,
   mappingsOverride = false,
+  query,
   skipHeader = false,
   transform,
   verbose = true,
@@ -83,6 +84,7 @@ export default async function transformer({
         sourceIndexName,
         transform,
         sourceClient,
+        query,
       );
     }
 
