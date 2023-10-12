@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-alpha12](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha11...v1.0.0-alpha12) (2023-10-12)
+
+
+### Features
+
+* bulk ingest with parallel calls and dynamic backoff ([0c7311d](https://github.com/walterra/node-es-transformer/commit/0c7311daf19b0da1a59a8698a9dd9b240ca20c21))
+
 ## [1.0.0-alpha11](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha10...v1.0.0-alpha11) (2023-10-12)
 
 ### Features
