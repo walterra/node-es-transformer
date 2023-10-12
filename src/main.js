@@ -1,5 +1,6 @@
 import elasticsearch from '@elastic/elasticsearch';
 
+import { DEFAULT_BUFFER_SIZE } from './_constants';
 import createMappingFactory from './_create-mapping';
 import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
@@ -9,7 +10,7 @@ export default async function transformer({
   deleteIndex = false,
   sourceClientConfig,
   targetClientConfig,
-  bufferSize = 1000,
+  bufferSize = DEFAULT_BUFFER_SIZE,
   fileName,
   splitRegex = /\n/,
   sourceIndexName,
@@ -87,6 +88,7 @@ export default async function transformer({
         transform,
         sourceClient,
         query,
+        bufferSize,
       );
     }
 

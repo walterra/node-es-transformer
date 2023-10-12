@@ -1,3 +1,5 @@
+import { DEFAULT_BUFFER_SIZE } from './_constants';
+
 const EventEmitter = require('events');
 
 const queueEmitter = new EventEmitter();
@@ -6,7 +8,7 @@ const queueEmitter = new EventEmitter();
 export default function indexQueueFactory({
   targetClient: client,
   targetIndexName,
-  bufferSize = 1000,
+  bufferSize = DEFAULT_BUFFER_SIZE,
   skipHeader = false,
   verbose = true,
 }) {
