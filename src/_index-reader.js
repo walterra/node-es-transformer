@@ -2,7 +2,7 @@ import cliProgress from 'cli-progress';
 
 import { DEFAULT_BUFFER_SIZE } from './_constants';
 
-const MAX_QUEUE_SIZE = 5;
+const MAX_QUEUE_SIZE = 15;
 
 // create a new progress bar instance and use shades_classic theme
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
