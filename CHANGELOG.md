@@ -4,17 +4,13 @@ All notable changes to this project will be documented in this file. See [commit
 
 ## [1.0.0-alpha11](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha10...v1.0.0-alpha11) (2023-10-12)
 
-
 ### Features
 
-* new option 'indexMappingTotalFieldsLimit' ([92edad1](https://github.com/walterra/node-es-transformer/commit/92edad18da7186d3881fc181e6e88b7929bed2d4))
-
+- new option 'indexMappingTotalFieldsLimit' ([92edad1](https://github.com/walterra/node-es-transformer/commit/92edad18da7186d3881fc181e6e88b7929bed2d4))
 
 ### Bug Fixes
 
-* fixes bufferSize to be applied to index reader too ([ffc3749](https://github.com/walterra/node-es-transformer/commit/ffc3749e296cd39f39924571c197986addc756ff))
-
-## [`main`](https://github.com/walterra/node-es-transformer/tree/main)
+- fixes bufferSize to be applied to index reader too ([ffc3749](https://github.com/walterra/node-es-transformer/commit/ffc3749e296cd39f39924571c197986addc756ff))
 
 ## [`v1.0.0-alpha10`](https://github.com/walterra/node-es-transformer/releases/tag/v1.0.0-alpha10)
 
