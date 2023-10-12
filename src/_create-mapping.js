@@ -5,6 +5,7 @@ export default function createMappingFactory({
   targetIndexName,
   mappings,
   mappingsOverride,
+  indexMappingTotalFieldsLimit,
   verbose,
 }) {
   return async () => {
@@ -32,12 +33,19 @@ export default function createMappingFactory({
       }
 
       try {
-        const resp = await targetClient.indices.create(
-          {
-            index: targetIndexName,
-            body: { mappings: targetMappings },
+        const resp = await targetClient.indices.create({
+          index: targetIndexName,
+          body: {
+            mappings: targetMappings,
+            ...(indexMappingTotalFieldsLimit !== undefined
+              ? {
+                  settings: {
+                    'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
+                  },
+                }
+              : {}),
           },
-        );
+        });
         if (verbose) console.log('Created target mapping', resp);
       } catch (err) {
         console.log('Error creating target mapping', err);

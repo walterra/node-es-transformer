@@ -115,6 +115,7 @@ transformer({
 - `targetIndexName`: The target Elasticsearch index where documents will be indexed.
 - `mappings`: Optional Elasticsearch document mappings. If not set and you're reindexing from another index, the mappings from the existing index will be used.
 - `mappingsOverride`: If you're reindexing and this is set to `true`, `mappings` will be applied on top of the source index's mappings. Defaults to `false`.
+- `indexMappingTotalFieldsLimit`: Optional field limit for the target index to be created that will be passed on as the `index.mapping.total_fields.limit` setting.
 - `query`: Optional Elasticsearch [DSL query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) to filter documents from the source index.
 - `skipHeader`: If true, skips the first line of the source file. Defaults to `false`.
 - `transform(line)`: A callback function which allows the transformation of a source line into one or several documents.
