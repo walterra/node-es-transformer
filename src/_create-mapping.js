@@ -13,7 +13,9 @@ export default function createMappingFactory({
 
     if (sourceClient && sourceIndexName && typeof targetMappings === 'undefined') {
       try {
-        const mapping = await sourceClient.indices.getMapping({ index: sourceIndexName });
+        const mapping = await sourceClient.indices.getMapping({
+          index: sourceIndexName,
+        });
         targetMappings = mapping[sourceIndexName].mappings;
       } catch (err) {
         console.log('Error reading source mapping', err);

@@ -16,7 +16,7 @@ export default function indexQueueFactory({
   const queue = [];
   let ingesting = false;
 
-  const ingest = async (b) => {
+  const ingest = async b => {
     if (typeof b !== 'undefined') {
       queue.push(b);
       queueEmitter.emit('queue-size', queue.length);
@@ -26,7 +26,8 @@ export default function indexQueueFactory({
       const docs = queue.shift();
       queueEmitter.emit('queue-size', queue.length);
       ingesting = true;
-      if (verbose) console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
+      if (verbose)
+        console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
 
       try {
         await client.bulk({ body: docs });
@@ -47,7 +48,7 @@ export default function indexQueueFactory({
   };
 
   return {
-    add: (doc) => {
+    add: doc => {
       if (!skipHeader) {
         const header = { index: { _index: targetIndexName } };
         buffer.push(header);
@@ -59,7 +60,7 @@ export default function indexQueueFactory({
         queueEmitter.emit('resume');
       }
 
-      if (buffer.length >= (bufferSize * 2)) {
+      if (buffer.length >= bufferSize * 2) {
         ingest(buffer);
         buffer = [];
       }

@@ -55,30 +55,16 @@ export default async function transformer({
   });
 
   function getReader() {
-    if (
-      typeof fileName !== 'undefined'
-      && typeof sourceIndexName !== 'undefined'
-    ) {
-      throw Error(
-        'Only either one of fileName or sourceIndexName can be specified.',
-      );
+    if (typeof fileName !== 'undefined' && typeof sourceIndexName !== 'undefined') {
+      throw Error('Only either one of fileName or sourceIndexName can be specified.');
     }
 
-    if (
-      typeof fileName === 'undefined'
-      && typeof sourceIndexName === 'undefined'
-    ) {
+    if (typeof fileName === 'undefined' && typeof sourceIndexName === 'undefined') {
       throw Error('Either fileName or sourceIndexName must be specified.');
     }
 
     if (typeof fileName !== 'undefined') {
-      return fileReaderFactory(
-        indexer,
-        fileName,
-        transform,
-        splitRegex,
-        verbose,
-      );
+      return fileReaderFactory(indexer, fileName, transform, splitRegex, verbose);
     }
 
     if (typeof sourceIndexName !== 'undefined') {

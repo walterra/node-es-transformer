@@ -44,7 +44,7 @@ export default function indexReaderFactory(
     function processHit(hit) {
       docsNum += 1;
       try {
-        const doc = (typeof transform === 'function') ? transform(hit._source) : hit._source; // eslint-disable-line no-underscore-dangle
+        const doc = typeof transform === 'function' ? transform(hit._source) : hit._source; // eslint-disable-line no-underscore-dangle
         // if doc is undefined we'll skip indexing it
         if (typeof doc === 'undefined') {
           return;
@@ -53,7 +53,7 @@ export default function indexReaderFactory(
         // the transform callback may return an array of docs so we can emit
         // multiple docs from a single line
         if (Array.isArray(doc)) {
-          doc.forEach((d) => indexer.add(d));
+          doc.forEach(d => indexer.add(d));
           return;
         }
 
@@ -86,7 +86,7 @@ export default function indexReaderFactory(
         }
 
         if (ingestQueueSize < MAX_QUEUE_SIZE) {
-        // get the next response if there are more docs to fetch
+          // get the next response if there are more docs to fetch
           const sc = await scroll(response._scroll_id); // eslint-disable-line no-await-in-loop,no-underscore-dangle,max-len
           scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
           responseQueue.push(sc);
@@ -96,11 +96,11 @@ export default function indexReaderFactory(
       }
     }
 
-    indexer.queueEmitter.on('queue-size', async (size) => {
+    indexer.queueEmitter.on('queue-size', async size => {
       ingestQueueSize = size;
 
       if (!readActive && ingestQueueSize < MAX_QUEUE_SIZE) {
-      // get the next response if there are more docs to fetch
+        // get the next response if there are more docs to fetch
         const sc = await scroll(scrollId); // eslint-disable-line no-await-in-loop,no-underscore-dangle,max-len
         scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
         responseQueue.push(sc);

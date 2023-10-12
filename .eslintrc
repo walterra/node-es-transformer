@@ -1,10 +1,65 @@
 {
-  "extends": "airbnb",
   "env": {
-    "node": true
+    "browser": false,
+    "es2021": true
   },
-  "plugins": [],
+  "extends": [
+    "airbnb",
+    "plugin:prettier/recommended"
+  ],
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": false
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "prettier"
+  ],
   "rules": {
-    "linebreak-style": "off"
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
+      },
+      {
+        "usePrettierrc": true
+      }
+    ],
+    "import/no-dynamic-require":"off",
+    "global-require": "off",
+    "no-use-before-define": "off",
+    "import/no-cycle": "off",
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "no-param-reassign": "off",
+    "radix": "off",
+    "import/order": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": "off",
+    "no-unused-expressions": "off",
+    "array-callback-return": "warn",
+    "class-methods-use-this": "off",
+    "consistent-return": "off",
+    "new-cap": "off",
+    "import/prefer-default-export": "off",
+    "no-unused-vars": "warn",
+    "no-nested-ternary": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "no-return-assign": "warn",
+    "guard-for-in": "warn",
+    "no-restricted-syntax": "warn",
+    "max-classes-per-file": "off",
+    "camelcase": "off",
+    "prefer-destructuring": "warn",
+    "no-await-in-loop": "warn",
+    "no-restricted-globals": "off",
+    "no-bitwise": "off",
+    "eqeqeq": "warn",
+    "no-shadow": "warn",
+    "jsx-a11y/label-has-associated-control": "off"
   }
 }
