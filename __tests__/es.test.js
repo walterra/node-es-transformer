@@ -14,7 +14,7 @@ const indexName = 'myindex'; // Replace with your index name
 
 it('should create and index a document', () => {
   return frisby
-    .post(`${elasticsearchBaseUrl}/${indexName}/_doc/1`, documentData, { json: true })
+    .post(`${elasticsearchBaseUrl}/${indexName}/_doc/1?refresh=true`, documentData, { json: true })
     .expect('status', 201)
     .expect('json', {
       result: 'created',
@@ -29,8 +29,8 @@ it('should search for a document', () => {
     .expect('status', 200)
     .expect('json', {
       hits: {
-        total: {
-          value: 1,
+      total: {
+        value: 1,
         },
       },
     });

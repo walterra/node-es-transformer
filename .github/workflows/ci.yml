@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # https://github.com/elastic/elastic-github-actions/tree/master/elasticsearch
       - name: Configure sysctl limits
         run: |
           sudo swapoff -a
