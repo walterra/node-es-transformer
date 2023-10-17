@@ -15,6 +15,7 @@
     "sourceType": "module"
   },
   "plugins": [
+    "jest",
     "prettier"
   ],
   "rules": {
@@ -61,5 +62,16 @@
     "eqeqeq": "warn",
     "no-shadow": "warn",
     "jsx-a11y/label-has-associated-control": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.test.js",
+        "**/*.test.jsx"
+      ],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
 }
