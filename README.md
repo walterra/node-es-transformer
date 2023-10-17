@@ -2,6 +2,7 @@
 [![npm](https://img.shields.io/npm/l/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
 [![npm](https://img.shields.io/npm/dt/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![CI](https://github.com/walterra/node-es-transformer/actions/workflows/ci.yml/badge.svg)](https://github.com/walterra/node-es-transformer/actions)
 
 # node-es-transformer
 
@@ -141,7 +142,15 @@ yarn
 
 `yarn dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
 
-`yarn test` builds the library, then tests it.
+`yarn test` runs the tests. The tests expect that you have an Elasticsearch instance running without security at `http://localhost:9200`. Using docker, you can set this up with:
+
+```bash
+# Download the docker image
+docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.4
+
+# Run the container
+docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.10.4
+```
 
 ## License
 
