@@ -20,8 +20,7 @@ it('should create and index a document', () => {
       result: 'created',
       _index: indexName,
       _id: '1',
-    })
-    .toss();
+    });
 });
 
 it('should search for a document', () => {
@@ -34,8 +33,7 @@ it('should search for a document', () => {
           value: 1,
         },
       },
-    })
-    .toss();
+    });
 });
 
 it('should delete a document', () => {
@@ -46,6 +44,5 @@ it('should delete a document', () => {
       result: 'deleted',
       _index: indexName,
       _id: '1',
-    })
-    .toss();
+    });
 });
