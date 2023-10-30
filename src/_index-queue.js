@@ -109,9 +109,14 @@ export default function indexQueueFactory({
       }
     },
     finish: () => {
-      ingest(buffer);
       finished = true;
-      buffer = [];
+
+      if (buffer.length > 0) {
+        ingest(buffer);
+        buffer = [];
+      } else if (queue.length === 0 && ingesting === 0) {
+        queueEmitter.emit('finish');
+      }
     },
     queueEmitter,
   };
