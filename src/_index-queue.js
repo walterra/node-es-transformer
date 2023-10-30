@@ -99,7 +99,6 @@ export default function indexQueueFactory({
       }
       buffer.push(doc);
 
-      // console.log(`add: queue.length ${queue.length}`);
       if (queue.length === 0) {
         queueEmitter.emit('resume');
       }

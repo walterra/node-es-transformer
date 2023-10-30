@@ -78,7 +78,6 @@ export default function indexReaderFactory(
         progressBar.update(docsNum);
 
         // check to see if we have collected all of the docs
-        // console.log('check count', response.hits.total.value, docsNum);
         if (response.hits.total.value === docsNum) {
           indexer.finish();
           break;
