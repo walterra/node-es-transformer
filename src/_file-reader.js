@@ -2,8 +2,13 @@ import fs from 'fs';
 import es from 'event-stream';
 import glob from 'glob';
 
+const MAX_QUEUE_SIZE = 15;
+
 export default function fileReaderFactory(indexer, fileName, transform, splitRegex, verbose) {
   function startIndex(files) {
+    let ingestQueueSize = 0;
+    let finished = false;
+
     const file = files.shift();
     const s = fs
       .createReadStream(file)
@@ -11,7 +16,6 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
       .pipe(
         es
           .mapSync(line => {
-            s.pause();
             try {
               const doc = typeof transform === 'function' ? transform(line) : line;
               // if doc is undefined we'll skip indexing it
@@ -37,14 +41,30 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
           })
           .on('end', () => {
             if (verbose) console.log('Read entire file: ', file);
-            indexer.finish();
             if (files.length > 0) {
               startIndex(files);
+              return;
             }
+
+            indexer.finish();
+            finished = true;
           }),
       );
 
+    indexer.queueEmitter.on('queue-size', async size => {
+      if (finished) return;
+      ingestQueueSize = size;
+
+      if (ingestQueueSize < MAX_QUEUE_SIZE) {
+        s.resume();
+      } else {
+        s.pause();
+      }
+    });
+
     indexer.queueEmitter.on('resume', () => {
+      if (finished) return;
+      ingestQueueSize = 0;
       s.resume();
     });
   }

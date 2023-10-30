@@ -18,6 +18,7 @@ export default function indexQueueFactory({
   const queue = [];
   let ingesting = 0;
   let ingestTimes = [];
+  let finished = false;
 
   const ingest = b => {
     if (typeof b !== 'undefined') {
@@ -68,8 +69,11 @@ export default function indexQueueFactory({
           ) {
             parallelCalls -= 1;
           }
+
           if (queue.length > 0) {
             ingest();
+          } else if (queue.length === 0 && finished) {
+            queueEmitter.emit('finish');
           }
         })
         .catch(error => {
@@ -85,6 +89,10 @@ export default function indexQueueFactory({
 
   return {
     add: doc => {
+      if (finished) {
+        throw new Error('Unexpected doc added after indexer should finish.');
+      }
+
       if (!skipHeader) {
         const header = { index: { _index: targetIndexName } };
         buffer.push(header);
@@ -101,10 +109,10 @@ export default function indexQueueFactory({
         buffer = [];
       }
     },
-    finish: async () => {
-      await ingest(buffer);
+    finish: () => {
+      ingest(buffer);
+      finished = true;
       buffer = [];
-      queueEmitter.emit('finish');
     },
     queueEmitter,
   };
