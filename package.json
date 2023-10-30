@@ -48,7 +48,8 @@
     "dev": "rollup -c -w",
     "test": "jest",
     "pretest": "npm run build",
-    "release": "commit-and-tag-version"
+    "release": "commit-and-tag-version",
+    "create-sample-data": "node scripts/create_sample_data"
   },
   "files": [
     "dist"
