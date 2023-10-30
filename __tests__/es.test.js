@@ -29,8 +29,8 @@ it('should search for a document', () => {
     .expect('status', 200)
     .expect('json', {
       hits: {
-      total: {
-        value: 1,
+        total: {
+          value: 1,
         },
       },
     });
