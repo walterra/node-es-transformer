@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-beta1](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha12...v1.0.0-beta1) (2023-10-30)
+
+
+### Bug Fixes
+
+* avoid passing on an empty buffer in finish callback ([e0fbe8e](https://github.com/walterra/node-es-transformer/commit/e0fbe8e47a876af2d601fbe74521e46dbc0dc750))
+* fix event handling for file-reader ([5f472b3](https://github.com/walterra/node-es-transformer/commit/5f472b37f647bb0320653f8333ccec984483c12f))
+* fixes parallel calls ([9c2785d](https://github.com/walterra/node-es-transformer/commit/9c2785d592ff5ee825799f4fe0a0dbaed54ddd15))
+* trigger end of progress bar only after finish event was triggered ([e57b9a0](https://github.com/walterra/node-es-transformer/commit/e57b9a0954c8e98cc8b724ba9dca546e1f443d59))
+
 ## [1.0.0-alpha12](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha11...v1.0.0-alpha12) (2023-10-12)
 
 
