@@ -4,7 +4,7 @@ const frisby = require('frisby');
 const transformer = require('../dist/node-es-transformer.cjs');
 
 const elasticsearchUrl = 'http://localhost:9200';
-const indexName = 'file_reader';
+const indexName = 'file_reader_wildcard';
 
 const client = new elasticsearch.Client({
   node: elasticsearchUrl,
@@ -20,7 +20,7 @@ describe('indexes an ndjson file', () => {
   it('should index the ndjson file and find its docs', done => {
     (async () => {
       const { events } = await transformer({
-        fileName: './data/sample_data_10000.ndjson',
+        fileName: './data/sample_data_*.ndjson',
         targetIndexName: indexName,
         mappings: {
           properties: {
@@ -40,6 +40,17 @@ describe('indexes an ndjson file', () => {
 
       events.on('finish', async () => {
         await client.indices.refresh({ index: indexName });
+
+        frisby
+          .get(`${elasticsearchUrl}/${indexName}/_search?q=the_index:99`)
+          .expect('status', 200)
+          .expect('json', {
+            hits: {
+              total: {
+                value: 2,
+              },
+            },
+          });
 
         frisby
           .get(`${elasticsearchUrl}/${indexName}/_search?q=the_index:9999`)

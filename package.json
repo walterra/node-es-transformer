@@ -49,7 +49,8 @@
     "test": "jest",
     "pretest": "npm run build",
     "release": "commit-and-tag-version",
-    "create-sample-data": "node scripts/create_sample_data"
+    "create-sample-data-10000": "node scripts/create_sample_data_10000",
+    "create-sample-data-100": "node scripts/create_sample_data_100"
   },
   "files": [
     "dist"
