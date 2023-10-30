@@ -10,7 +10,7 @@ const client = new elasticsearch.Client({
   node: elasticsearchUrl,
 });
 
-describe('indexes an ndjson file', () => {
+describe('indexes multiple ndjson files with 10100 docs in total', () => {
   afterAll(async () => {
     await client.indices.delete({
       index: indexName,
@@ -35,7 +35,6 @@ describe('indexes an ndjson file', () => {
             },
           },
         },
-        verbose: true,
       });
 
       events.on('finish', async () => {
