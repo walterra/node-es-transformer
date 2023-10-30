@@ -81,7 +81,6 @@ export default function indexReaderFactory(
         // console.log('check count', response.hits.total.value, docsNum);
         if (response.hits.total.value === docsNum) {
           indexer.finish();
-          progressBar.stop();
           break;
         }
 
@@ -120,6 +119,10 @@ export default function indexReaderFactory(
       scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
       responseQueue.push(sc);
       processResponseQueue();
+    });
+
+    indexer.queueEmitter.on('finish', () => {
+      progressBar.stop();
     });
 
     processResponseQueue();
