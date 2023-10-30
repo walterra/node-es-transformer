@@ -41,29 +41,45 @@ export default function indexQueueFactory({
         console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
 
       const start = Date.now();
-      client.bulk({ body: docs }).then(() => {
-        const end = Date.now();
-        const delta = end - start;
-        ingestTimes.push(delta);
-        ingesting -= 1;
+      client
+        .bulk({ body: docs })
+        .then(() => {
+          const end = Date.now();
+          const delta = end - start;
+          ingestTimes.push(delta);
+          ingesting -= 1;
 
-        const ingestTimesMovingAverage =
-          ingestTimes.length > 0 ? ingestTimes.reduce((p, c) => p + c, 0) / ingestTimes.length : 0;
-        const ingestTimesMovingAverageSeconds = Math.floor(ingestTimesMovingAverage / 1000);
+          const ingestTimesMovingAverage =
+            ingestTimes.length > 0
+              ? ingestTimes.reduce((p, c) => p + c, 0) / ingestTimes.length
+              : 0;
+          const ingestTimesMovingAverageSeconds = Math.floor(ingestTimesMovingAverage / 1000);
 
-        if (ingestTimes.length > 0 && ingestTimesMovingAverageSeconds < 30 && parallelCalls < 10) {
-          parallelCalls += 1;
-        } else if (
-          ingestTimes.length > 0 &&
-          ingestTimesMovingAverageSeconds >= 30 &&
-          parallelCalls > 1
-        ) {
-          parallelCalls -= 1;
-        }
-        if (queue.length > 0) {
-          ingest();
-        }
-      });
+          if (
+            ingestTimes.length > 0 &&
+            ingestTimesMovingAverageSeconds < 30 &&
+            parallelCalls < 10
+          ) {
+            parallelCalls += 1;
+          } else if (
+            ingestTimes.length > 0 &&
+            ingestTimesMovingAverageSeconds >= 30 &&
+            parallelCalls > 1
+          ) {
+            parallelCalls -= 1;
+          }
+          if (queue.length > 0) {
+            ingest();
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          ingesting -= 1;
+          parallelCalls = 1;
+          if (queue.length > 0) {
+            ingest();
+          }
+        });
     }
   };
 
