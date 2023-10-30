@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const stream = fs.createWriteStream('./data/sample_data.ndjson', { flags: 'a' });
+const stream = fs.createWriteStream('./data/sample_data_10000.ndjson', { flags: 'a' });
 
 const randomItemFromArray = items => items[~~(items.length * Math.random())];
 

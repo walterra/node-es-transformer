@@ -20,7 +20,7 @@ describe('indexes an ndjson file', () => {
   it('should index the ndjson file and find its docs', done => {
     (async () => {
       const { events } = await transformer({
-        fileName: './data/sample_data.ndjson',
+        fileName: './data/sample_data_10000.ndjson',
         targetIndexName: indexName,
         mappings: {
           properties: {
