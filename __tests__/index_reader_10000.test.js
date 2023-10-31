@@ -1,5 +1,5 @@
 const elasticsearch = require('@elastic/elasticsearch');
-const frisby = require('frisby');
+const retry = require('async-retry');
 
 const transformer = require('../dist/node-es-transformer.cjs');
 
@@ -30,6 +30,7 @@ describe('reindexes 10000 docs', () => {
             },
           },
         },
+        verbose: false,
       });
 
       events.on('finish', async () => {
@@ -50,27 +51,34 @@ describe('reindexes 10000 docs', () => {
 
   it('should reindex 10000 docs', done => {
     (async () => {
+      await retry(async () => {
+        const res = await fetch(`${elasticsearchUrl}/${sourceIndexName}/_search?q=the_index:9999`);
+        expect(res.status).toBe(200);
+
+        const body = await res.json();
+        expect(body?.hits?.total?.value).toBe(1);
+      });
+
       const { events } = await transformer({
         sourceClient: client,
         targetClient: client,
         sourceIndexName,
         targetIndexName,
-        verbose: true,
+        verbose: false,
       });
 
       events.on('finish', async () => {
         await client.indices.refresh({ index: targetIndexName });
 
-        frisby
-          .get(`${elasticsearchUrl}/${targetIndexName}/_search?q=the_index:9999`)
-          .expect('status', 200)
-          .expect('json', {
-            hits: {
-              total: {
-                value: 1,
-              },
-            },
-          });
+        await retry(async () => {
+          const res = await fetch(
+            `${elasticsearchUrl}/${targetIndexName}/_search?q=the_index:9999`,
+          );
+          expect(res.status).toBe(200);
+
+          const body = await res.json();
+          expect(body?.hits?.total?.value).toBe(1);
+        });
 
         done();
       });

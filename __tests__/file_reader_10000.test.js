@@ -1,5 +1,5 @@
 const elasticsearch = require('@elastic/elasticsearch');
-const frisby = require('frisby');
+const retry = require('async-retry');
 
 const transformer = require('../dist/node-es-transformer.cjs');
 
@@ -11,10 +11,22 @@ const client = new elasticsearch.Client({
 });
 
 describe('indexes an ndjson file with 10000 docs', () => {
-  afterAll(async () => {
-    await client.indices.delete({
-      index: indexName,
-    });
+  afterAll(done => {
+    (async () => {
+      await client.indices.delete({
+        index: indexName,
+      });
+
+      await retry(async () => {
+        const exists = await client.indices.exists({ index: indexName });
+
+        if (exists) {
+          throw new Error(`Index '${indexName} still exists`);
+        }
+      });
+
+      done();
+    })();
   });
 
   it('should index the ndjson file and find its docs', done => {
@@ -35,21 +47,19 @@ describe('indexes an ndjson file with 10000 docs', () => {
             },
           },
         },
+        verbose: false,
       });
 
       events.on('finish', async () => {
         await client.indices.refresh({ index: indexName });
 
-        frisby
-          .get(`${elasticsearchUrl}/${indexName}/_search?q=the_index:9999`)
-          .expect('status', 200)
-          .expect('json', {
-            hits: {
-              total: {
-                value: 1,
-              },
-            },
-          });
+        await retry(async () => {
+          const res = await fetch(`${elasticsearchUrl}/${indexName}/_search?q=the_index:9999`);
+          expect(res.status).toBe(200);
+
+          const body = await res.json();
+          expect(body?.hits?.total?.value).toBe(1);
+        });
 
         done();
       });
