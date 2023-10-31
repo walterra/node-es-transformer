@@ -2,6 +2,7 @@ const elasticsearch = require('@elastic/elasticsearch');
 const retry = require('async-retry');
 
 const transformer = require('../dist/node-es-transformer.cjs');
+const deleteIndex = require('./utils/delete_index');
 
 const elasticsearchUrl = 'http://localhost:9200';
 const indexName = 'file_reader_wildcard';
@@ -11,23 +12,7 @@ const client = new elasticsearch.Client({
 });
 
 describe('indexes multiple ndjson files with 10100 docs in total', () => {
-  afterAll(done => {
-    (async () => {
-      await client.indices.delete({
-        index: indexName,
-      });
-
-      await retry(async () => {
-        const exists = await client.indices.exists({ index: indexName });
-
-        if (exists) {
-          throw new Error(`Index '${indexName} still exists`);
-        }
-      });
-
-      done();
-    })();
-  });
+  afterAll(deleteIndex(client, indexName));
 
   it('should index the ndjson files and find its docs', done => {
     (async () => {
