@@ -1,16 +1,12 @@
-const elasticsearch = require('@elastic/elasticsearch');
 const retry = require('async-retry');
 
 const transformer = require('../dist/node-es-transformer.cjs');
 const deleteIndex = require('./utils/delete_index');
+const { elasticsearchUrl, getElasticsearchClient } = require('./utils/elasticsearch');
 
-const elasticsearchUrl = 'http://localhost:9200';
+const client = getElasticsearchClient();
 const sourceIndexName = 'file_reader_10000';
 const targetIndexName = 'reindex_10000';
-
-const client = new elasticsearch.Client({
-  node: elasticsearchUrl,
-});
 
 describe('reindexes 10000 docs', () => {
   beforeAll(done => {
@@ -44,6 +40,7 @@ describe('reindexes 10000 docs', () => {
   afterAll(async () => {
     await deleteIndex(client, sourceIndexName)();
     await deleteIndex(client, targetIndexName)();
+    await client.close();
   });
 
   it('should reindex 10000 docs', done => {

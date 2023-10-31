@@ -1,18 +1,17 @@
-const elasticsearch = require('@elastic/elasticsearch');
 const retry = require('async-retry');
 
 const transformer = require('../dist/node-es-transformer.cjs');
 const deleteIndex = require('./utils/delete_index');
+const { elasticsearchUrl, getElasticsearchClient } = require('./utils/elasticsearch');
 
-const elasticsearchUrl = 'http://localhost:9200';
+const client = getElasticsearchClient();
 const indexName = 'file_reader_wildcard';
 
-const client = new elasticsearch.Client({
-  node: elasticsearchUrl,
-});
-
 describe('indexes multiple ndjson files with 10100 docs in total', () => {
-  afterAll(deleteIndex(client, indexName));
+  afterAll(async () => {
+    await deleteIndex(client, indexName)();
+    await client.close();
+  });
 
   it('should index the ndjson files and find its docs', done => {
     (async () => {
