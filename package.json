@@ -46,7 +46,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "jest",
+    "test": "jest --runInBand --detectOpenHandles --forceExit",
     "pretest": "npm run build",
     "release": "commit-and-tag-version",
     "create-sample-data-10000": "node scripts/create_sample_data_10000",
