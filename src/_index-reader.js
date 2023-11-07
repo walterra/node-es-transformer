@@ -14,30 +14,60 @@ export default function indexReaderFactory(
   client,
   query,
   bufferSize = DEFAULT_BUFFER_SIZE,
+  populatedFields = false,
 ) {
   return async function indexReader() {
     const responseQueue = [];
     let docsNum = 0;
 
-    function search() {
+    async function fetchPopulatedFields() {
+      try {
+        const response = await client.search({
+          index: sourceIndexName,
+          size: bufferSize,
+          query: {
+            function_score: {
+              query,
+              random_score: {},
+            },
+          },
+        });
+
+        // Get all field names for each returned doc and flatten it
+        // to a list of unique field names used across all docs.
+        return new Set(response.hits.hits.map(d => Object.keys(d._source)).flat(1));
+      } catch (e) {
+        console.log('error', e);
+      }
+    }
+
+    function search(fields) {
       return client.search({
         index: sourceIndexName,
-        scroll: '30s',
+        scroll: '600s',
         size: bufferSize,
         query,
+        ...(fields ? { _source: fields } : {}),
       });
     }
 
     function scroll(id) {
       return client.scroll({
         scroll_id: id,
-        scroll: '30s',
+        scroll: '600s',
       });
+    }
+
+    let fieldsWithData;
+
+    // identify populated fields
+    if (populatedFields) {
+      fieldsWithData = await fetchPopulatedFields();
     }
 
     // start things off by searching, setting a scroll timeout, and pushing
     // our first response into the queue to be processed
-    const se = await search();
+    const se = await search(fieldsWithData);
     responseQueue.push(se);
     progressBar.start(se.hits.total.value, 0);
 
@@ -45,6 +75,7 @@ export default function indexReaderFactory(
       docsNum += 1;
       try {
         const doc = typeof transform === 'function' ? transform(hit._source) : hit._source; // eslint-disable-line no-underscore-dangle
+
         // if doc is undefined we'll skip indexing it
         if (typeof doc === 'undefined') {
           return;

@@ -18,6 +18,7 @@ export default async function transformer({
   mappings,
   mappingsOverride = false,
   indexMappingTotalFieldsLimit,
+  populatedFields = false,
   query,
   skipHeader = false,
   transform,
@@ -75,6 +76,7 @@ export default async function transformer({
         sourceClient,
         query,
         bufferSize,
+        populatedFields,
       );
     }
 
