@@ -5,10 +5,10 @@ const deleteIndex = require('./utils/delete_index');
 const { elasticsearchUrl, getElasticsearchClient } = require('./utils/elasticsearch');
 
 const client = getElasticsearchClient();
-const sourceIndexName = 'source_10000';
-const targetIndexName = 'reindex_10000';
+const sourceIndexName = 'source_populated_fields';
+const targetIndexName = 'target_populated_fields';
 
-describe('reindexes 10000 docs', () => {
+describe('reindexes 10000 docs with populated fields only', () => {
   beforeAll(done => {
     (async () => {
       const { events } = await transformer({
@@ -25,9 +25,21 @@ describe('reindexes 10000 docs', () => {
             url: {
               type: 'keyword',
             },
+            unpopulated_field: {
+              type: 'keyword',
+            },
+            unpopulated_nested_field: {
+              type: 'nested',
+              properties: {
+                the_inner_field: {
+                  type: 'keyword',
+                },
+              },
+            },
           },
         },
         verbose: false,
+        transform: doc => ({ the_index: doc.the_index, url: doc.url }),
       });
 
       events.on('finish', async () => {
@@ -58,6 +70,7 @@ describe('reindexes 10000 docs', () => {
         targetClient: client,
         sourceIndexName,
         targetIndexName,
+        populatedFields: true,
         verbose: false,
       });
 
@@ -72,6 +85,7 @@ describe('reindexes 10000 docs', () => {
 
           const body = await res.json();
           expect(body?.hits?.total?.value).toBe(1);
+          expect(body.hits.hits[0]._source).toEqual({ the_index: 9999, url: 'login.php' });
         });
 
         done();

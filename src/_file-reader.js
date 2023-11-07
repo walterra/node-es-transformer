@@ -17,7 +17,16 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
         es
           .mapSync(line => {
             try {
-              const doc = typeof transform === 'function' ? transform(line) : line;
+              // skip empty lines
+              if (line === '') {
+                return;
+              }
+
+              const doc =
+                typeof transform === 'function'
+                  ? JSON.stringify(transform(JSON.parse(line)))
+                  : line;
+
               // if doc is undefined we'll skip indexing it
               if (typeof doc === 'undefined') {
                 s.resume();
