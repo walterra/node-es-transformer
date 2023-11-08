@@ -153,6 +153,8 @@ docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.4
 docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.10.4
 ```
 
+To commit, use `cz`. To prepare a release, use e.g. `yarn release -- --release-as 1.0.0-beta2`.
+
 ## License
 
 [Apache 2.0](LICENSE).
