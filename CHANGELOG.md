@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-beta2](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta1...v1.0.0-beta2) (2023-11-08)
+
+
+### Features
+
+* new `populatedFields` option ([abc9a06](https://github.com/walterra/node-es-transformer/commit/abc9a06ee0aade79fd5e4acf93371e7213790cde))
+
+
+### Bug Fixes
+
+* fix line handling for transform callback for file reader ([9962382](https://github.com/walterra/node-es-transformer/commit/99623824ef80fff2956bf9b90164395f8854ebe3))
+
 ## [1.0.0-beta1](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha12...v1.0.0-beta1) (2023-10-30)
 
 
