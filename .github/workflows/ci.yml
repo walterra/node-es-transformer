@@ -21,7 +21,7 @@ jobs:
       - name: Runs Elasticsearch
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
-          stack-version: 8.10.0
+          stack-version: 8.15.0
           security-enabled: false
 
       - name: Checkout code

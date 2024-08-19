@@ -298,7 +298,7 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@elastic/elasticsearch@^8.10.0":
+"@elastic/elasticsearch@^8.15.0":
   version "8.15.0"
   resolved "https://registry.yarnpkg.com/@elastic/elasticsearch/-/elasticsearch-8.15.0.tgz#cb29b3ae33203c545d435cf3dc4b557c8b4961d5"
   integrity sha512-mG90EMdTDoT6GFSdqpUAhWK9LGuiJo6tOWqs0Usd/t15mPQDj7ZqHXfCBqNkASZpwPZpbAYVjd57S6nbUBINCg==
