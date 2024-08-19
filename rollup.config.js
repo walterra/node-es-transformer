@@ -1,5 +1,3 @@
-// import resolve from 'rollup-plugin-node-resolve';
-// import commonjs from 'rollup-plugin-commonjs';
 import buble from 'rollup-plugin-buble';
 import pkg from './package.json';
 
@@ -19,7 +17,7 @@ export default [
     plugins: [
       buble({
         exclude: ['node_modules/**'],
-        transforms: { asyncAwait: false },
+        transforms: { asyncAwait: false, forOf: false },
         objectAssign: 'Object.assign',
       }),
     ],

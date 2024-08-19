@@ -7,6 +7,7 @@ export default function createMappingFactory({
   mappingsOverride,
   indexMappingTotalFieldsLimit,
   verbose,
+  deleteIndex,
 }) {
   return async () => {
     let targetMappings = mappingsOverride ? undefined : mappings;
@@ -16,7 +17,14 @@ export default function createMappingFactory({
         const mapping = await sourceClient.indices.getMapping({
           index: sourceIndexName,
         });
-        targetMappings = mapping[sourceIndexName].mappings;
+        if (mapping[sourceIndexName]) {
+          targetMappings = mapping[sourceIndexName].mappings;
+        } else {
+          const allMappings = Object.values(mapping);
+          if (allMappings.length > 0) {
+            targetMappings = Object.values(mapping)[0].mappings;
+          }
+        }
       } catch (err) {
         console.log('Error reading source mapping', err);
         return;
@@ -35,20 +43,30 @@ export default function createMappingFactory({
       }
 
       try {
-        const resp = await targetClient.indices.create({
-          index: targetIndexName,
-          body: {
-            mappings: targetMappings,
-            ...(indexMappingTotalFieldsLimit !== undefined
-              ? {
-                  settings: {
-                    'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
-                  },
-                }
-              : {}),
-          },
-        });
-        if (verbose) console.log('Created target mapping', resp);
+        const indexExists = await targetClient.indices.exists({ index: targetIndexName });
+
+        if (indexExists === true && deleteIndex === true) {
+          await targetClient.indices.delete({ index: targetIndexName });
+        }
+
+        if (indexExists === false || deleteIndex === true) {
+          const resp = await targetClient.indices.create({
+            index: targetIndexName,
+            body: {
+              mappings: targetMappings,
+              ...(indexMappingTotalFieldsLimit !== undefined
+                ? {
+                    settings: {
+                      'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
+                      'index.number_of_shards': 1,
+                      'index.number_of_replicas': 0,
+                    },
+                  }
+                : {}),
+            },
+          });
+          if (verbose) console.log('Created target mapping', resp);
+        }
       } catch (err) {
         console.log('Error creating target mapping', err);
       }

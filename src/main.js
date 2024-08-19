@@ -46,6 +46,7 @@ export default async function transformer({
     mappingsOverride,
     indexMappingTotalFieldsLimit,
     verbose,
+    deleteIndex,
   });
   const indexer = indexQueueFactory({
     targetClient,

@@ -35,7 +35,7 @@ export default function indexReaderFactory(
 
         // Get all field names for each returned doc and flatten it
         // to a list of unique field names used across all docs.
-        return new Set(response.hits.hits.map(d => Object.keys(d._source)).flat(1));
+        return Array.from(new Set(response.hits.hits.map(d => Object.keys(d._source)).flat(1)));
       } catch (e) {
         console.log('error', e);
       }
