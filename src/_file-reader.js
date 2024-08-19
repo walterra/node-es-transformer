@@ -1,6 +1,7 @@
 import fs from 'fs';
 import es from 'event-stream';
 import glob from 'glob';
+import split from 'split2';
 
 const MAX_QUEUE_SIZE = 15;
 
@@ -12,7 +13,7 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
     const file = files.shift();
     const s = fs
       .createReadStream(file)
-      .pipe(es.split(splitRegex))
+      .pipe(split(splitRegex))
       .pipe(
         es
           .mapSync(line => {
