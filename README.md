@@ -110,7 +110,8 @@ transformer({
 
 - `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
 - `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`.
-- `bufferSize`: The amount of documents inserted with each Elasticsearch bulk insert request, default is `1000`.
+- `bufferSize`: The threshold to flush bulk index request in KBytes, defaults to `5120`.
+- `searchSize`: The amount of documents to be fetched with each search request when reindexing from another source index.
 - `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` is not allowed.
 - `splitRegex`: Custom line split regex, defaults to `/\n/`.
 - `sourceIndexName`: The source Elasticsearch index to reindex from. If this is set, `fileName` is not allowed.

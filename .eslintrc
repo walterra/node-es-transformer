@@ -28,7 +28,7 @@
         "usePrettierrc": true
       }
     ],
-    "import/no-dynamic-require":"off",
+    "import/no-dynamic-require": "off",
     "global-require": "off",
     "no-use-before-define": "off",
     "import/no-cycle": "off",
@@ -52,7 +52,7 @@
     "jsx-a11y/anchor-is-valid": "off",
     "no-return-assign": "warn",
     "guard-for-in": "warn",
-    "no-restricted-syntax": "warn",
+    "no-restricted-syntax": "off",
     "max-classes-per-file": "off",
     "camelcase": "off",
     "prefer-destructuring": "warn",
@@ -61,7 +61,8 @@
     "no-bitwise": "off",
     "eqeqeq": "warn",
     "no-shadow": "warn",
-    "jsx-a11y/label-has-associated-control": "off"
+    "jsx-a11y/label-has-associated-control": "off",
+    "no-console": "off"
   },
   "overrides": [
     {

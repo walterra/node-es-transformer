@@ -3,11 +3,8 @@ import es from 'event-stream';
 import glob from 'glob';
 import split from 'split2';
 
-const MAX_QUEUE_SIZE = 15;
-
 export default function fileReaderFactory(indexer, fileName, transform, splitRegex, verbose) {
   function startIndex(files) {
-    let ingestQueueSize = 0;
     let finished = false;
 
     const file = files.shift();
@@ -61,20 +58,13 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
           }),
       );
 
-    indexer.queueEmitter.on('queue-size', async size => {
+    indexer.queueEmitter.on('pause', () => {
       if (finished) return;
-      ingestQueueSize = size;
-
-      if (ingestQueueSize < MAX_QUEUE_SIZE) {
-        s.resume();
-      } else {
-        s.pause();
-      }
+      s.pause();
     });
 
     indexer.queueEmitter.on('resume', () => {
       if (finished) return;
-      ingestQueueSize = 0;
       s.resume();
     });
   }

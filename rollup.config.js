@@ -17,7 +17,7 @@ export default [
     plugins: [
       buble({
         exclude: ['node_modules/**'],
-        transforms: { asyncAwait: false, forOf: false },
+        transforms: { asyncAwait: false, forOf: false, generator: false },
         objectAssign: 'Object.assign',
       }),
     ],

@@ -1,10 +1,12 @@
+import { Readable } from 'stream';
+
 import { DEFAULT_BUFFER_SIZE } from './_constants';
 
 const EventEmitter = require('events');
 
 const queueEmitter = new EventEmitter();
 
-let parallelCalls = 1;
+const parallelCalls = 5;
 
 // a simple helper queue to bulk index documents
 export default function indexQueueFactory({
@@ -14,78 +16,71 @@ export default function indexQueueFactory({
   skipHeader = false,
   verbose = true,
 }) {
-  let buffer = [];
-  const queue = [];
-  let ingesting = 0;
-  let ingestTimes = [];
+  const flushBytes = bufferSize * 1024; // Convert KB to Bytes
+  const highWaterMark = flushBytes * parallelCalls;
+
+  // Create a Readable stream
+  const stream = new Readable({
+    read() {}, // Implement read but we manage pushing manually
+    highWaterMark, // Buffer size for backpressure management
+  });
+
+  async function* ndjsonStreamIterator(readableStream) {
+    let buffer = ''; // To hold the incomplete data
+    let skippedHeader = false;
+
+    // Iterate over the stream using async iteration
+    for await (const chunk of readableStream) {
+      buffer += chunk.toString(); // Accumulate the chunk data in the buffer
+
+      // Split the buffer into lines (NDJSON items)
+      const lines = buffer.split('\n');
+
+      // The last line might be incomplete, so hold it back in the buffer
+      buffer = lines.pop();
+
+      // Yield each complete JSON object
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            if (!skipHeader || (skipHeader && !skippedHeader)) {
+              yield JSON.parse(line); // Parse and yield the JSON object
+              skippedHeader = true;
+            }
+          } catch (err) {
+            // Handle JSON parse errors if necessary
+            console.error('Failed to parse JSON:', err);
+          }
+        }
+      }
+    }
+
+    // Handle any remaining data in the buffer after the stream ends
+    if (buffer.trim()) {
+      try {
+        yield JSON.parse(buffer);
+      } catch (err) {
+        console.error('Failed to parse final JSON:', err);
+      }
+    }
+  }
+
   let finished = false;
 
-  const ingest = b => {
-    if (typeof b !== 'undefined') {
-      queue.push(b);
-      queueEmitter.emit('queue-size', queue.length);
-    }
+  // Async IIFE to start bulk indexing
+  (async () => {
+    await client.helpers.bulk({
+      concurrency: parallelCalls,
+      datasource: ndjsonStreamIterator(stream),
+      onDocument(doc) {
+        return {
+          index: { _index: targetIndexName },
+        };
+      },
+    });
 
-    if (ingestTimes.length > 5) ingestTimes = ingestTimes.slice(-5);
-
-    if (ingesting < parallelCalls) {
-      const docs = queue.shift();
-
-      queueEmitter.emit('queue-size', queue.length);
-      if (queue.length <= 5) {
-        queueEmitter.emit('resume');
-      }
-
-      ingesting += 1;
-
-      if (verbose)
-        console.log(`bulk ingest docs: ${docs.length / 2}, queue length: ${queue.length}`);
-
-      const start = Date.now();
-      client
-        .bulk({ body: docs })
-        .then(() => {
-          const end = Date.now();
-          const delta = end - start;
-          ingestTimes.push(delta);
-          ingesting -= 1;
-
-          const ingestTimesMovingAverage =
-            ingestTimes.length > 0
-              ? ingestTimes.reduce((p, c) => p + c, 0) / ingestTimes.length
-              : 0;
-          const ingestTimesMovingAverageSeconds = Math.floor(ingestTimesMovingAverage / 1000);
-
-          if (
-            ingestTimes.length > 0 &&
-            ingestTimesMovingAverageSeconds < 30 &&
-            parallelCalls < 10
-          ) {
-            parallelCalls += 1;
-          } else if (
-            ingestTimes.length > 0 &&
-            ingestTimesMovingAverageSeconds >= 30 &&
-            parallelCalls > 1
-          ) {
-            parallelCalls -= 1;
-          }
-
-          if (queue.length > 0) {
-            ingest();
-          } else if (queue.length === 0 && finished) {
-            queueEmitter.emit('finish');
-          }
-        })
-        .catch(error => {
-          console.error(error);
-          ingesting -= 1;
-          parallelCalls = 1;
-          if (queue.length > 0) {
-            ingest();
-          }
-        });
-    }
-  };
+    queueEmitter.emit('finish');
+  })();
 
   return {
     add: doc => {
@@ -93,30 +88,17 @@ export default function indexQueueFactory({
         throw new Error('Unexpected doc added after indexer should finish.');
       }
 
-      if (!skipHeader) {
-        const header = { index: { _index: targetIndexName } };
-        buffer.push(header);
-      }
-      buffer.push(doc);
-
-      if (queue.length === 0) {
-        queueEmitter.emit('resume');
-      }
-
-      if (buffer.length >= bufferSize * 2) {
-        ingest(buffer);
-        buffer = [];
+      const canContinue = stream.push(`${JSON.stringify(doc)}\n`);
+      if (!canContinue) {
+        queueEmitter.emit('pause');
+        stream.once('drain', () => {
+          queueEmitter.emit('resume');
+        });
       }
     },
     finish: () => {
       finished = true;
-
-      if (buffer.length > 0) {
-        ingest(buffer);
-        buffer = [];
-      } else if (queue.length === 0 && ingesting === 0) {
-        queueEmitter.emit('finish');
-      }
+      stream.push(null);
     },
     queueEmitter,
   };

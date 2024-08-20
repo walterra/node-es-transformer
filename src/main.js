@@ -1,6 +1,6 @@
 import elasticsearch from '@elastic/elasticsearch';
 
-import { DEFAULT_BUFFER_SIZE } from './_constants';
+import { DEFAULT_BUFFER_SIZE, DEFAULT_SEARCH_SIZE } from './_constants';
 import createMappingFactory from './_create-mapping';
 import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
@@ -11,6 +11,7 @@ export default async function transformer({
   sourceClientConfig,
   targetClientConfig,
   bufferSize = DEFAULT_BUFFER_SIZE,
+  searchSize = DEFAULT_SEARCH_SIZE,
   fileName,
   splitRegex = /\n/,
   sourceIndexName,
@@ -76,7 +77,7 @@ export default async function transformer({
         transform,
         sourceClient,
         query,
-        bufferSize,
+        searchSize,
         populatedFields,
       );
     }

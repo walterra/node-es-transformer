@@ -1,8 +1,6 @@
 import cliProgress from 'cli-progress';
 
-import { DEFAULT_BUFFER_SIZE } from './_constants';
-
-const MAX_QUEUE_SIZE = 15;
+import { DEFAULT_SEARCH_SIZE } from './_constants';
 
 // create a new progress bar instance and use shades_classic theme
 const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -13,18 +11,21 @@ export default function indexReaderFactory(
   transform,
   client,
   query,
-  bufferSize = DEFAULT_BUFFER_SIZE,
+  searchSize = DEFAULT_SEARCH_SIZE,
   populatedFields = false,
 ) {
   return async function indexReader() {
-    const responseQueue = [];
     let docsNum = 0;
+    let scrollId;
+    let finished = false;
+    let readActive = false;
+    let backPressurePause = false;
 
     async function fetchPopulatedFields() {
       try {
         const response = await client.search({
           index: sourceIndexName,
-          size: bufferSize,
+          size: searchSize,
           query: {
             function_score: {
               query,
@@ -45,7 +46,7 @@ export default function indexReaderFactory(
       return client.search({
         index: sourceIndexName,
         scroll: '600s',
-        size: bufferSize,
+        size: searchSize,
         query,
         ...(fields ? { _source: fields } : {}),
       });
@@ -65,11 +66,7 @@ export default function indexReaderFactory(
       fieldsWithData = await fetchPopulatedFields();
     }
 
-    // start things off by searching, setting a scroll timeout, and pushing
-    // our first response into the queue to be processed
-    const se = await search(fieldsWithData);
-    responseQueue.push(se);
-    progressBar.start(se.hits.total.value, 0);
+    await fetchNextResponse();
 
     function processHit(hit) {
       docsNum += 1;
@@ -94,67 +91,55 @@ export default function indexReaderFactory(
       }
     }
 
-    let ingestQueueSize = 0;
-    let scrollId = se._scroll_id; // eslint-disable-line no-underscore-dangle
-    let readActive = false;
+    async function fetchNextResponse() {
+      readActive = true;
 
-    async function processResponseQueue() {
-      while (responseQueue.length) {
-        readActive = true;
-        const response = responseQueue.shift();
+      const sc = scrollId ? await scroll(scrollId) : await search(fieldsWithData);
 
-        // collect the docs from this response
-        response.hits.hits.forEach(processHit);
-
-        progressBar.update(docsNum);
-
-        // check to see if we have collected all of the docs
-        if (response.hits.total.value === docsNum) {
-          indexer.finish();
-          break;
-        }
-
-        if (ingestQueueSize < MAX_QUEUE_SIZE) {
-          // get the next response if there are more docs to fetch
-          const sc = await scroll(response._scroll_id); // eslint-disable-line no-await-in-loop,no-underscore-dangle,max-len
-          scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
-          responseQueue.push(sc);
-        } else {
-          readActive = false;
-        }
+      if (scrollId) {
+        progressBar.start(sc.hits.total.value, 0);
       }
+
+      scrollId = sc._scroll_id;
+      readActive = false;
+
+      processResponse(sc);
     }
 
-    indexer.queueEmitter.on('queue-size', async size => {
-      ingestQueueSize = size;
+    async function processResponse(response) {
+      // collect the docs from this response
+      response.hits.hits.forEach(processHit);
 
-      if (!readActive && ingestQueueSize < MAX_QUEUE_SIZE) {
-        // get the next response if there are more docs to fetch
-        const sc = await scroll(scrollId); // eslint-disable-line no-await-in-loop,no-underscore-dangle,max-len
-        scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
-        responseQueue.push(sc);
-        processResponseQueue();
-      }
-    });
+      progressBar.update(docsNum);
 
-    indexer.queueEmitter.on('resume', async () => {
-      ingestQueueSize = 0;
-
-      if (readActive) {
+      // check to see if we have collected all of the docs
+      if (response.hits.total.value === docsNum) {
+        indexer.finish();
         return;
       }
 
-      // get the next response if there are more docs to fetch
-      const sc = await scroll(scrollId); // eslint-disable-line no-await-in-loop,no-underscore-dangle,max-len
-      scrollId = sc._scroll_id; // eslint-disable-line no-underscore-dangle
-      responseQueue.push(sc);
-      processResponseQueue();
+      if (!backPressurePause) {
+        await fetchNextResponse();
+      }
+    }
+
+    indexer.queueEmitter.on('pause', async () => {
+      backPressurePause = true;
+    });
+
+    indexer.queueEmitter.on('resume', async () => {
+      backPressurePause = false;
+
+      if (readActive || finished) {
+        return;
+      }
+
+      await fetchNextResponse();
     });
 
     indexer.queueEmitter.on('finish', () => {
+      finished = true;
       progressBar.stop();
     });
-
-    processResponseQueue();
   };
 }
