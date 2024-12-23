@@ -5,6 +5,7 @@ import createMappingFactory from './_create-mapping';
 import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
 import indexReaderFactory from './_index-reader';
+import streamReaderFactory from './_stream-reader';
 
 export default async function transformer({
   deleteIndex = false,
@@ -12,6 +13,7 @@ export default async function transformer({
   targetClientConfig,
   bufferSize = DEFAULT_BUFFER_SIZE,
   searchSize = DEFAULT_SEARCH_SIZE,
+  stream,
   fileName,
   splitRegex = /\n/,
   sourceIndexName,
@@ -62,8 +64,12 @@ export default async function transformer({
       throw Error('Only either one of fileName or sourceIndexName can be specified.');
     }
 
-    if (typeof fileName === 'undefined' && typeof sourceIndexName === 'undefined') {
-      throw Error('Either fileName or sourceIndexName must be specified.');
+    if (
+      (typeof fileName !== 'undefined' && typeof sourceIndexName !== 'undefined') ||
+      (typeof fileName !== 'undefined' && typeof stream !== 'undefined') ||
+      (typeof sourceIndexName !== 'undefined' && typeof stream !== 'undefined')
+    ) {
+      throw Error('Only one of fileName, sourceIndexName, or stream can be specified.');
     }
 
     if (typeof fileName !== 'undefined') {
@@ -80,6 +86,10 @@ export default async function transformer({
         searchSize,
         populatedFields,
       );
+    }
+
+    if (typeof stream !== 'undefined') {
+      return streamReaderFactory(indexer, stream, transform, splitRegex, verbose);
     }
 
     return null;

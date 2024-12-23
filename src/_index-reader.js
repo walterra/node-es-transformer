@@ -96,7 +96,7 @@ export default function indexReaderFactory(
 
       const sc = scrollId ? await scroll(scrollId) : await search(fieldsWithData);
 
-      if (scrollId) {
+      if (!scrollId) {
         progressBar.start(sc.hits.total.value, 0);
       }
 

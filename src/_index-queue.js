@@ -71,6 +71,9 @@ export default function indexQueueFactory({
   (async () => {
     await client.helpers.bulk({
       concurrency: parallelCalls,
+      flushBytes,
+      flushInterval: 1000,
+      refreshOnCompletion: true,
       datasource: ndjsonStreamIterator(stream),
       onDocument(doc) {
         return {
