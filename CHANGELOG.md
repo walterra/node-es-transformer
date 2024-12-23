@@ -2,34 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
-## [1.0.0-beta2](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta1...v1.0.0-beta2) (2023-11-08)
+## [1.0.0-beta3](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta2...v1.0.0-beta3) (2024-12-23)
 
+### ⚠ BREAKING CHANGES
+
+- bufferSize is no longer number of docs but flush KBytes.
 
 ### Features
 
-* new `populatedFields` option ([abc9a06](https://github.com/walterra/node-es-transformer/commit/abc9a06ee0aade79fd5e4acf93371e7213790cde))
+- delete index option ([b92bd21](https://github.com/walterra/node-es-transformer/commit/b92bd211ace2eb66aedb06f58ba64e8c23f94aaa))
+- adds support for node stream as source ([281950c](https://github.com/walterra/node-es-transformer/commit/281950c12f20a9526f3d1db75ed23cec5255cba4))
+- make use of ES client bulk index helper ([b0b39c8](https://github.com/walterra/node-es-transformer/commit/b0b39c8fe95758cc52f8c82caa7ac4bde2cd87a1))
 
+## [1.0.0-beta2](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta1...v1.0.0-beta2) (2023-11-08)
+
+### Features
+
+- new `populatedFields` option ([abc9a06](https://github.com/walterra/node-es-transformer/commit/abc9a06ee0aade79fd5e4acf93371e7213790cde))
 
 ### Bug Fixes
 
-* fix line handling for transform callback for file reader ([9962382](https://github.com/walterra/node-es-transformer/commit/99623824ef80fff2956bf9b90164395f8854ebe3))
+- fix line handling for transform callback for file reader ([9962382](https://github.com/walterra/node-es-transformer/commit/99623824ef80fff2956bf9b90164395f8854ebe3))
 
 ## [1.0.0-beta1](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha12...v1.0.0-beta1) (2023-10-30)
 
-
 ### Bug Fixes
 
-* avoid passing on an empty buffer in finish callback ([e0fbe8e](https://github.com/walterra/node-es-transformer/commit/e0fbe8e47a876af2d601fbe74521e46dbc0dc750))
-* fix event handling for file-reader ([5f472b3](https://github.com/walterra/node-es-transformer/commit/5f472b37f647bb0320653f8333ccec984483c12f))
-* fixes parallel calls ([9c2785d](https://github.com/walterra/node-es-transformer/commit/9c2785d592ff5ee825799f4fe0a0dbaed54ddd15))
-* trigger end of progress bar only after finish event was triggered ([e57b9a0](https://github.com/walterra/node-es-transformer/commit/e57b9a0954c8e98cc8b724ba9dca546e1f443d59))
+- avoid passing on an empty buffer in finish callback ([e0fbe8e](https://github.com/walterra/node-es-transformer/commit/e0fbe8e47a876af2d601fbe74521e46dbc0dc750))
+- fix event handling for file-reader ([5f472b3](https://github.com/walterra/node-es-transformer/commit/5f472b37f647bb0320653f8333ccec984483c12f))
+- fixes parallel calls ([9c2785d](https://github.com/walterra/node-es-transformer/commit/9c2785d592ff5ee825799f4fe0a0dbaed54ddd15))
+- trigger end of progress bar only after finish event was triggered ([e57b9a0](https://github.com/walterra/node-es-transformer/commit/e57b9a0954c8e98cc8b724ba9dca546e1f443d59))
 
 ## [1.0.0-alpha12](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha11...v1.0.0-alpha12) (2023-10-12)
 
-
 ### Features
 
-* bulk ingest with parallel calls and dynamic backoff ([0c7311d](https://github.com/walterra/node-es-transformer/commit/0c7311daf19b0da1a59a8698a9dd9b240ca20c21))
+- bulk ingest with parallel calls and dynamic backoff ([0c7311d](https://github.com/walterra/node-es-transformer/commit/0c7311daf19b0da1a59a8698a9dd9b240ca20c21))
 
 ## [1.0.0-alpha11](https://github.com/walterra/node-es-transformer/compare/v1.0.0-alpha10...v1.0.0-alpha11) (2023-10-12)
 
