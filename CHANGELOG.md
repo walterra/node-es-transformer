@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-beta4](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta3...v1.0.0-beta4) (2024-12-30)
+
+### Docs
+
+- updated README.md to document `stream` option (bc664fe).
+
+### Chore
+
+- add tests for `stream` option (b5b644c).
+- update ES client to `8.17.0` (62edd5c).
+
 ## [1.0.0-beta3](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta2...v1.0.0-beta3) (2024-12-23)
 
 ### ⚠ BREAKING CHANGES
