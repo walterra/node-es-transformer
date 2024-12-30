@@ -1,5 +1,5 @@
-import buble from 'rollup-plugin-buble';
-import pkg from './package.json';
+import { babel } from '@rollup/plugin-babel';
+import pkg from './package.json' with { "type": "json" };
 
 export default [
   // CommonJS (for Node) and ES module (for bundlers) build.
@@ -11,14 +11,13 @@ export default [
     input: 'src/main.js',
     external: ['ms'],
     output: [
-      { file: pkg.main, format: 'cjs' },
-      { file: pkg.module, format: 'es' },
+      { file: pkg.main, format: 'cjs', sourcemap: true }, // CommonJS
+      { file: pkg.module, format: 'es', sourcemap: true }, // ES Module
     ],
     plugins: [
-      buble({
-        exclude: ['node_modules/**'],
-        transforms: { asyncAwait: false, forOf: false, generator: false },
-        objectAssign: 'Object.assign',
+      babel({
+        babelHelpers: 'bundled', // Required for Rollup compatibility
+        exclude: 'node_modules/**', // Transpile only source files
       }),
     ],
   },
