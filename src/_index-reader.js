@@ -23,20 +23,18 @@ export default function indexReaderFactory(
 
     async function fetchPopulatedFields() {
       try {
-        const response = await client.search({
-          index: sourceIndexName,
-          size: searchSize,
-          query: {
-            function_score: {
-              query,
-              random_score: {},
-            },
+        // Get all populated fields from the index
+        const response = await client.fieldCaps(
+          {
+            index: sourceIndexName,
+            fields: '*',
+            include_empty_fields: false,
+            filters: '-metadata',
           },
-        });
+          { maxRetries: 0 },
+        );
 
-        // Get all field names for each returned doc and flatten it
-        // to a list of unique field names used across all docs.
-        return Array.from(new Set(response.hits.hits.map(d => Object.keys(d._source)).flat(1)));
+        return Object.keys(response.fields);
       } catch (e) {
         console.log('error', e);
       }
