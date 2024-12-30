@@ -14,23 +14,12 @@ If you're looking for a nodejs based tool which allows you to ingest large CSV/J
 
 While I'd generally recommend using [Logstash](https://www.elastic.co/products/logstash), [filebeat](https://www.elastic.co/products/beats/filebeat), [Ingest Nodes](https://www.elastic.co/guide/en/elasticsearch/reference/master/ingest.html), [Elastic Agent](https://www.elastic.co/guide/en/fleet/current/fleet-overview.html) or [Elasticsearch Transforms](https://www.elastic.co/guide/en/elasticsearch/reference/current/transforms.html) for established use cases, this tool may be of help especially if you feel more at home in the JavaScript/nodejs universe and have use cases with customized ingestion and data transformation needs.
 
-**This is experimental code, use at your own risk. Nonetheless, I encourage you to give it a try so I can gather some feedback.**
-
-### So why is this still _alpha_?
-
-- The API is not quite final and might change from release to release.
-- The code needs some more safety measures to avoid some possible accidental data loss scenarios.
-- No test coverage yet.
-
----
-
-Now that we've talked about the caveats, let's have a look what you actually get with this tool:
-
 ## Features
 
 - Buffering/Streaming for both reading and indexing. Files are read using streaming and Elasticsearch ingestion is done using buffered bulk indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes. On a single machine running both `node-es-transformer` and Elasticsearch ingestion rates up to 20k documents/second were achieved (2,9 GHz Intel Core i7, 16GByte RAM, SSD), depending on document size.
 - Supports wildcards to ingest/transform a range of files in one go.
 - Supports fetching documents from existing indices using search/scroll. This allows you to reindex with custom data transformations just using JavaScript in the `transform` callback.
+- Supports ingesting docs based on a nodejs stream.
 - The `transform` callback gives you each source document, but you can split it up in multiple ones and return an array of documents. An example use case for this: Each source document is a Tweet and you want to transform that into an entity centric index based on Hashtags.
 
 ## Getting started
@@ -112,9 +101,10 @@ transformer({
 - `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`.
 - `bufferSize`: The threshold to flush bulk index request in KBytes, defaults to `5120`.
 - `searchSize`: The amount of documents to be fetched with each search request when reindexing from another source index.
-- `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` is not allowed.
+- `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` and `stream` are not allowed.
+- `stream`: Source nodejs stream to ingest. If this is set, `sourceIndexName` and `fileName` are not allowed.
 - `splitRegex`: Custom line split regex, defaults to `/\n/`.
-- `sourceIndexName`: The source Elasticsearch index to reindex from. If this is set, `fileName` is not allowed.
+- `sourceIndexName`: The source Elasticsearch index to reindex from. If this is set, `fileName` and `stream` are not allowed.
 - `targetIndexName`: The target Elasticsearch index where documents will be indexed.
 - `mappings`: Optional Elasticsearch document mappings. If not set and you're reindexing from another index, the mappings from the existing index will be used.
 - `mappingsOverride`: If you're reindexing and this is set to `true`, `mappings` will be applied on top of the source index's mappings. Defaults to `false`.
