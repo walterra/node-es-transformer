@@ -36,7 +36,7 @@ export default function streamReaderFactory(indexer, stream, transform, splitReg
           }
         })
         .on('error', err => {
-          console.log('Error while reading file.', err);
+          console.log('Error while reading stream.', err);
         })
         .on('end', () => {
           if (verbose) console.log('Read entire stream.');
