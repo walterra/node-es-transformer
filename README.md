@@ -148,10 +148,10 @@ yarn
 
 ```bash
 # Download the docker image
-docker pull docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
 
 # Run the container
-docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.17.0
 ```
 
 To commit, use `cz`. To prepare a release, use e.g. `yarn release -- --release-as 1.0.0-beta2`.
