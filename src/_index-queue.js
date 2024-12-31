@@ -14,8 +14,9 @@ export default function indexQueueFactory({
   targetIndexName,
   bufferSize = DEFAULT_BUFFER_SIZE,
   skipHeader = false,
-  verbose = true,
 }) {
+  let docsPerSecond = 0;
+
   const flushBytes = bufferSize * 1024; // Convert KB to Bytes
   const highWaterMark = flushBytes * parallelCalls;
 
@@ -69,6 +70,11 @@ export default function indexQueueFactory({
 
   // Async IIFE to start bulk indexing
   (async () => {
+    const interval = setInterval(() => {
+      queueEmitter.emit('docsPerSecond', docsPerSecond);
+      docsPerSecond = 0;
+    }, 1000);
+
     await client.helpers.bulk({
       concurrency: parallelCalls,
       flushBytes,
@@ -76,12 +82,14 @@ export default function indexQueueFactory({
       refreshOnCompletion: true,
       datasource: ndjsonStreamIterator(stream),
       onDocument(doc) {
+        docsPerSecond++;
         return {
           index: { _index: targetIndexName },
         };
       },
     });
 
+    clearInterval(interval);
     queueEmitter.emit('finish');
   })();
 
