@@ -30,7 +30,7 @@ jobs:
       - name: Set up Node.js and run tests
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '20.x'
       - run: yarn
       - run: yarn build --if-present
       - run: yarn test
