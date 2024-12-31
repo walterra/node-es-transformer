@@ -21,6 +21,7 @@ export default async function transformer({
   mappings,
   mappingsOverride = false,
   indexMappingTotalFieldsLimit,
+  pipeline,
   populatedFields = false,
   query,
   skipHeader = false,
@@ -50,6 +51,7 @@ export default async function transformer({
     indexMappingTotalFieldsLimit,
     verbose,
     deleteIndex,
+    pipeline,
   });
   const indexer = indexQueueFactory({
     targetClient,

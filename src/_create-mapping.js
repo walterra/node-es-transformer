@@ -8,6 +8,7 @@ export default function createMappingFactory({
   indexMappingTotalFieldsLimit,
   verbose,
   deleteIndex,
+  pipeline,
 }) {
   return async () => {
     let targetMappings = mappingsOverride ? undefined : mappings;
@@ -54,6 +55,15 @@ export default function createMappingFactory({
             index: targetIndexName,
             body: {
               mappings: targetMappings,
+              ...(pipeline !== undefined
+                ? {
+                    settings: {
+                      index: {
+                        default_pipeline: pipeline,
+                      },
+                    },
+                  }
+                : {}),
               ...(indexMappingTotalFieldsLimit !== undefined
                 ? {
                     settings: {
