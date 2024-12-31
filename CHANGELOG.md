@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-beta6](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta5...v1.0.0-beta6) (2024-12-31)
+
 ## [1.0.0-beta5](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta4...v1.0.0-beta5) (2024-12-31)
 
 
