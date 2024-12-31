@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.0-beta5](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta4...v1.0.0-beta5) (2024-12-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* Minimum required nodejs version: v20
+
+* update .nvmrc to v20 ([e77899a](https://github.com/walterra/node-es-transformer/commit/e77899a398703fd2d0ffaeb093a3b7a1d638cc6f))
+
+
+### Features
+
+* emits docsPerSecond event ([bc825fe](https://github.com/walterra/node-es-transformer/commit/bc825fee18cbe2eaafc2f7d67f34067e0b93db50))
+* support for pipeline ([c53ea2c](https://github.com/walterra/node-es-transformer/commit/c53ea2c5465b564ec141ab2abfe7e0db6cac1fb0))
+
 ## [1.0.0-beta4](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta3...v1.0.0-beta4) (2024-12-30)
 
 ### Docs
