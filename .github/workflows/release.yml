@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check for Changesets
+        id: check-changesets
+        run: |
+          CHANGESET_COUNT=$(find .changeset -name "*.md" ! -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$CHANGESET_COUNT" -gt 0 ]; then
+            echo "hasChangesets=true" >> $GITHUB_OUTPUT
+            echo "Found $CHANGESET_COUNT changeset(s)"
+          else
+            echo "hasChangesets=false" >> $GITHUB_OUTPUT
+            echo "No changesets found"
+          fi
+
+      - name: Create Release Pull Request
+        if: steps.check-changesets.outputs.hasChangesets == 'true'
+        uses: changesets/action@v1
+        with:
+          version: yarn changeset version
+          commit: 'chore: version packages'
+          title: 'chore: release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for Published Version
+        id: check-publish
+        if: steps.check-changesets.outputs.hasChangesets == 'false'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "shouldPublish=false" >> $GITHUB_OUTPUT
+            echo "Tag v${VERSION} already exists"
+          else
+            echo "shouldPublish=true" >> $GITHUB_OUTPUT
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Will create release for v${VERSION}"
+          fi
+
+      - name: Create GitHub Release
+        if: steps.check-publish.outputs.shouldPublish == 'true'
+        run: |
+          VERSION="${{ steps.check-publish.outputs.version }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "v${VERSION}"
+          
+          RELEASE_NOTES=$(awk '/^## / {if (found) exit; found=1; next} found' CHANGELOG.md)
+          
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "${RELEASE_NOTES}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

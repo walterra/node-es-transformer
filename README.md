@@ -149,7 +149,7 @@ The first test run will download the Elasticsearch Docker image (Elasticsearch 8
 
 **Note:** If you prefer to run tests against a manually managed Elasticsearch instance, you can start one on `http://localhost:9200` and the tests will use it as a fallback.
 
-To commit, use `cz`. To prepare a release, use e.g. `yarn release -- --release-as 1.0.0-beta2`.
+To commit, use `cz`. For releases, this project uses [Changesets](https://github.com/changesets/changesets) - see the Release Process section in AGENTS.md for details.
 
 ## License
 

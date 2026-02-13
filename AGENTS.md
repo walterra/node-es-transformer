@@ -173,25 +173,100 @@ transform(doc) {
 
 - Run `yarn lint` and `yarn test` before committing
 - Use `cz` for commit messages (Commitizen)
-- Tests must pass in CI (GitHub Actions workflow in `.github/workflows/ci.yml`)
-- Update CHANGELOG.md using `yarn release` (commit-and-tag-version)
+- Write changeset file directly in `.changeset/your-change.md` with concise one-liner
+- Tests must pass in CI (GitHub Actions workflows in `.github/workflows/`)
 - Ensure both CommonJS and ESM builds work
 - Add tests for new features or bug fixes
 
 ## Release Process
 
-**Note:** This project uses `commit-and-tag-version`, not changesets (see issue #24 for future changeset support)
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and releases.
 
-1. Make your changes and commit using `cz` (Commitizen for conventional commits)
-2. Run `yarn release -- --release-as <version>` (e.g., `1.0.0-beta8`)
-3. This updates version in `package.json` and auto-generates `CHANGELOG.md` from commit history
-4. Push tags to trigger CI/CD
+### Adding a Changeset (for Coding Agents)
 
-**Conventional Commit Format:**
-- `feat:` - New feature (minor version bump)
-- `fix:` - Bug fix (patch version bump)
-- `BREAKING CHANGE:` - Major version bump
-- `docs:`, `chore:`, `refactor:`, etc. - No version bump
+**Coding agents should write changeset files directly** (avoid interactive commands):
+
+1. Create a new `.md` file in `.changeset/` with a descriptive kebab-case name
+2. Write a concise one-liner describing the change
+
+**Format:**
+```markdown
+---
+"node-es-transformer": patch|minor|major
+---
+
+Concise one-line description of the change
+```
+
+**Examples:**
+
+**Patch (bug fix):**
+```markdown
+---
+"node-es-transformer": patch
+---
+
+Fix memory leak in stream cleanup
+```
+
+**Minor (new feature):**
+```markdown
+---
+"node-es-transformer": minor
+---
+
+Add support for gzip-compressed files
+```
+
+**Major (breaking change):**
+```markdown
+---
+"node-es-transformer": major
+---
+
+Remove deprecated bufferLimit option (use bufferSize instead)
+```
+
+### Adding a Changeset (for Human Developers)
+
+Interactive command (not suitable for agents):
+
+```bash
+yarn changeset
+```
+
+### Release Workflow
+
+1. **During Development:**
+   - Make changes and commit using `cz` (Commitizen)
+   - Agents: Write changeset file directly in `.changeset/`
+   - Humans: Run `yarn changeset` interactively
+   - Commit the changeset file with your changes
+
+2. **Automated Release PR:**
+   - When changesets are pushed to `main`, the release workflow automatically creates/updates a release PR
+   - The PR includes version bumps and updated CHANGELOG.md
+
+3. **Creating a Release:**
+   - Review and merge the release PR
+   - A GitHub release is automatically created with the version tag
+   - The changelog is extracted from CHANGELOG.md
+
+### Version Bump Guidelines
+
+- **patch** (0.0.x): Bug fixes, documentation updates, internal refactors
+- **minor** (0.x.0): New features, non-breaking API additions
+- **major** (x.0.0): Breaking changes, API removals
+
+### Checking Status
+
+```bash
+# View pending changesets
+yarn changeset:status
+
+# Preview what will be released
+find .changeset -name "*.md" ! -name "README.md"
+```
 
 ## Useful Examples
 
