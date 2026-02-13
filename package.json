@@ -21,8 +21,9 @@
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
-    "@elastic/elasticsearch": "^8.17.0",
     "cli-progress": "^3.12.0",
+    "es8": "npm:@elastic/elasticsearch@^8.17.0",
+    "es9": "npm:@elastic/elasticsearch@^9.2.0",
     "event-stream": "^3.3.4",
     "glob": "^7.2.3",
     "split2": "^4.2.0"
@@ -53,8 +54,10 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "jest --runInBand --detectOpenHandles --forceExit",
+    "test": "jest --runInBand --detectOpenHandles --forceExit --testPathIgnorePatterns=cross_version_reindex",
+    "test:cross-version": "jest --runInBand --detectOpenHandles --forceExit --testMatch='**/__tests__/cross_version_reindex.test.js' --globalSetup='<rootDir>/test/cross-version-setup.js' --globalTeardown='<rootDir>/test/cross-version-teardown.js'",
     "pretest": "npm run build",
+    "pretest:cross-version": "npm run build",
     "changeset": "changeset",
     "changeset:add": "changeset add",
     "changeset:status": "changeset status",
