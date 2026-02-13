@@ -45,13 +45,10 @@ jobs:
 
       - name: Create Release Pull Request
         if: steps.check-changesets.outputs.hasChangesets == 'true'
-        uses: changesets/action@v1
-        with:
-          version: yarn changeset version
-          commit: 'chore: version packages'
-          title: 'chore: release'
+        run: node scripts/create-release-pr.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Check for Published Version
         id: check-publish
