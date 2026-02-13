@@ -61,7 +61,7 @@
     "git-cz": "^4.9.0",
     "jest": "^30.2.0",
     "prettier": "^2.2.1",
-    "rollup": "4.29.1",
+    "rollup": "4.57.1",
     "testcontainers": "^11.11.0",
     "typescript": "^5.7.2"
   },
