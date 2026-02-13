@@ -32,11 +32,15 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 
 **Multi-Version Support**: Starting with v1.0.0-beta8, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
 
-## Getting started
+## Installation
 
-In your node-js project, add `node-es-transformer` as a dependency (`yarn add node-es-transformer` or `npm install node-es-transformer`).
+```bash
+npm install node-es-transformer
+# or
+yarn add node-es-transformer
+```
 
-Use the library in your code like:
+## Usage
 
 ### Read from a file
 
@@ -166,7 +170,7 @@ npm install es9@npm:@elastic/elasticsearch@^9.2.0
 npm install es8@npm:@elastic/elasticsearch@^8.17.0
 ```
 
-### Options
+## API Options
 
 - `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
 - `sourceClient`/`targetClient`: Pre-instantiated Elasticsearch client instances. If provided, these will be used instead of creating new clients.
@@ -188,59 +192,9 @@ npm install es8@npm:@elastic/elasticsearch@^8.17.0
 - `transform(line)`: A callback function which allows the transformation of a source line into one or several documents.
 - `verbose`: Logging verbosity, defaults to `true`
 
-## Development
+## Contributing
 
-Clone this repository and install its dependencies:
-
-```bash
-git clone https://github.com/walterra/node-es-transformer
-cd node-es-transformer
-yarn
-```
-
-`yarn build` builds the library to `dist`, generating two files:
-
-- `dist/node-es-transformer.cjs.js`
-  A CommonJS bundle, suitable for use in Node.js, that `require`s the external dependency. This corresponds to the `"main"` field in package.json
-- `dist/node-es-transformer.esm.js`
-  an ES module bundle, suitable for use in other people's libraries and applications, that `import`s the external dependency. This corresponds to the `"module"` field in package.json
-
-`yarn dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
-
-### Testing
-
-This project uses [Testcontainers](https://node.testcontainers.org/) to run tests against real Elasticsearch instances in Docker. **No manual Docker setup is required** - containers start automatically before tests.
-
-**Standard Tests** (single ES version):
-```bash
-yarn test
-```
-
-By default, tests run against ES 9.3.0. You can test against different versions:
-
-```bash
-ES_VERSION=8.17.0 yarn test
-ES_VERSION=9.0.0 yarn test
-```
-
-**Cross-Version Tests** (ES 8.x → 9.x reindexing):
-```bash
-yarn test:cross-version
-```
-
-This spins up TWO containers simultaneously (ES 8.17.0 and ES 9.3.0) and tests reindexing between major versions. This is more resource-intensive and takes longer to run.
-
-**Requirements:**
-- Docker daemon running
-- Node.js 22+
-- At least 2GB available memory for single-version tests
-- At least 4GB available memory for cross-version tests
-
-The first test run will download the Elasticsearch Docker image (Elasticsearch 9.3.0, one-time setup). Subsequent runs reuse the image.
-
-**Note:** If you prefer to run tests against a manually managed Elasticsearch instance, you can start one on `http://localhost:9200` and the tests will use it as a fallback.
-
-To commit, use `cz`. For releases, this project uses [Changesets](https://github.com/changesets/changesets) - see the Release Process section in AGENTS.md for details.
+Contributions are welcome! Please see [DEVELOPMENT.md](DEVELOPMENT.md) for development setup, testing, and release guidelines.
 
 ## License
 
