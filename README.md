@@ -142,7 +142,7 @@ yarn test
 
 **Requirements:**
 - Docker daemon running
-- Node.js 16+
+- Node.js 22+
 - At least 2GB available memory for the Elasticsearch container
 
 The first test run will download the Elasticsearch Docker image (Elasticsearch 8.17.0, one-time setup). Subsequent runs reuse the image.

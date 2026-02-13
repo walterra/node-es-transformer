@@ -15,6 +15,9 @@
   "author": "Walter M. Rafelsberger <walter@rafelsberger.at>",
   "contributors": [],
   "version": "1.0.0-beta7",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
@@ -44,9 +47,6 @@
     "rollup": "4.29.1",
     "testcontainers": "^11.11.0",
     "typescript": "^5.7.2"
-  },
-  "resolutions": {
-    "undici": "^6.21.0"
   },
   "scripts": {
     "build": "rollup -c",

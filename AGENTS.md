@@ -19,7 +19,7 @@ This library is designed to handle very large data files (tested up to 20-30 GB)
 ## Architecture
 
 - **Built with**: Rollup for bundling (CommonJS + ESM)
-- **Node.js**: v18+ (see `.nvmrc`)
+- **Node.js**: v22+ (see `.nvmrc`)
 - **Entry point**: `src/main.js`
 - **Core modules**:
   - `_file-reader.js` - Streaming file ingestion
@@ -56,15 +56,13 @@ yarn create-sample-data-10000
 **Pre-Flight Checks:**
 Before modifying dependencies or test setup, verify:
 1. Lock file: `yarn.lock` (do NOT use npm)
-2. Build system: Rollup with Babel (requires Node.js v18+)
+2. Build system: Rollup with Babel (requires Node.js v22+)
 3. Test runner: Jest with testcontainers
 4. Run `yarn build` first to ensure build works
 
 ## Testing Requirements
 
 Tests use [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. No manual Docker setup required.
-
-**Note:** The project uses `resolutions` in package.json to force `undici@^6.x` for Node.js 18 compatibility (testcontainers requires undici 7.x which needs Node 20+).
 
 ### Running Tests
 
@@ -80,7 +78,7 @@ yarn test
 
 **Requirements:**
 - Docker daemon running (`docker ps` to verify)
-- Node.js 16+
+- Node.js 22+
 - At least 2GB available memory for ES container
 
 **Fallback:** If Elasticsearch is already running on `http://localhost:9200`, tests will use it instead.
@@ -168,7 +166,7 @@ transform(doc) {
 4. **File Encoding**: Assumes UTF-8 encoding
 5. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
 6. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
-7. **Node.js Version**: Requires v18+ (see `.nvmrc`)
+7. **Node.js Version**: Requires v22+ (see `.nvmrc`)
 8. **Open Handles Warning**: Pre-existing Jest warning about stream cleanup (see issue #23). Tests use `--forceExit` to handle this
 
 ## PR Guidelines
@@ -223,14 +221,14 @@ yarn build
 grep -A 5 '"jest"' package.json
 
 # 4. Verify Node.js version
-node --version  # Should be v18+
+node --version  # Should be v22+
 ```
 
 **Document findings in your work log:**
 - Package manager: yarn
 - Build system: Rollup + Babel
 - Test runner: Jest + Testcontainers
-- Node.js: v18+
+- Node.js: v22+
 
 ### Development Guidelines
 
