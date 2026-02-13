@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.0
+
+### Major Changes
+
+- [#27](https://github.com/walterra/node-es-transformer/pull/27) [`812d9ba`](https://github.com/walterra/node-es-transformer/commit/812d9bae067007fd15ebdbc921827e419408b077) - Update to Node.js 22, migrate to Changesets, and add automated npm publishing (breaking: requires Node 22+)
+
+- [#31](https://github.com/walterra/node-es-transformer/pull/31) [`99a1c80`](https://github.com/walterra/node-es-transformer/commit/99a1c808f396e4e552acdc1f65d2772df7519a9b) - Improved documentation, TypeScript support.
+
+### Minor Changes
+
+- [#31](https://github.com/walterra/node-es-transformer/pull/31) [`99a1c80`](https://github.com/walterra/node-es-transformer/commit/99a1c808f396e4e552acdc1f65d2772df7519a9b) - Add cross-version reindex support for ES 8.x to 9.x migration with dual client aliasing
+
+### Patch Changes
+
+- [#34](https://github.com/walterra/node-es-transformer/pull/34) [`3a0d7cd`](https://github.com/walterra/node-es-transformer/commit/3a0d7cd2e147ea9517f10eb07a0e9f7fe78fb2e7) - Upgrade glob from v7 to v13
+
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
 ## [1.0.0-beta7](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta6...v1.0.0-beta7) (2024-12-31)
@@ -8,18 +24,16 @@ All notable changes to this project will be documented in this file. See [commit
 
 ## [1.0.0-beta5](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta4...v1.0.0-beta5) (2024-12-31)
 
-
 ### ⚠ BREAKING CHANGES
 
-* Minimum required nodejs version: v20
+- Minimum required nodejs version: v20
 
-* update .nvmrc to v20 ([e77899a](https://github.com/walterra/node-es-transformer/commit/e77899a398703fd2d0ffaeb093a3b7a1d638cc6f))
-
+- update .nvmrc to v20 ([e77899a](https://github.com/walterra/node-es-transformer/commit/e77899a398703fd2d0ffaeb093a3b7a1d638cc6f))
 
 ### Features
 
-* emits docsPerSecond event ([bc825fe](https://github.com/walterra/node-es-transformer/commit/bc825fee18cbe2eaafc2f7d67f34067e0b93db50))
-* support for pipeline ([c53ea2c](https://github.com/walterra/node-es-transformer/commit/c53ea2c5465b564ec141ab2abfe7e0db6cac1fb0))
+- emits docsPerSecond event ([bc825fe](https://github.com/walterra/node-es-transformer/commit/bc825fee18cbe2eaafc2f7d67f34067e0b93db50))
+- support for pipeline ([c53ea2c](https://github.com/walterra/node-es-transformer/commit/c53ea2c5465b564ec141ab2abfe7e0db6cac1fb0))
 
 ## [1.0.0-beta4](https://github.com/walterra/node-es-transformer/compare/v1.0.0-beta3...v1.0.0-beta4) (2024-12-30)
 
