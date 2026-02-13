@@ -19,7 +19,7 @@ This library is designed to handle very large data files (tested up to 20-30 GB)
 ## Architecture
 
 - **Built with**: Rollup for bundling (CommonJS + ESM)
-- **Node.js**: v24+ required (uses `with` syntax for import assertions in `rollup.config.mjs`)
+- **Node.js**: v18+ (see `.nvmrc`)
 - **Entry point**: `src/main.js`
 - **Core modules**:
   - `_file-reader.js` - Streaming file ingestion
@@ -56,7 +56,7 @@ yarn create-sample-data-10000
 **Pre-Flight Checks:**
 Before modifying dependencies or test setup, verify:
 1. Lock file: `yarn.lock` (do NOT use npm)
-2. Build system: Rollup with Babel (requires Node.js v24+)
+2. Build system: Rollup with Babel (requires Node.js v18+)
 3. Test runner: Jest with testcontainers
 4. Run `yarn build` first to ensure build works
 
@@ -166,7 +166,7 @@ transform(doc) {
 4. **File Encoding**: Assumes UTF-8 encoding
 5. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
 6. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
-7. **Node.js Version**: Requires v24+ for `with` import assertion syntax
+7. **Node.js Version**: Requires v18+ (see `.nvmrc`)
 8. **Open Handles Warning**: Pre-existing Jest warning about stream cleanup (see issue #23). Tests use `--forceExit` to handle this
 
 ## PR Guidelines
@@ -221,14 +221,14 @@ yarn build
 grep -A 5 '"jest"' package.json
 
 # 4. Verify Node.js version
-node --version  # Should be v24+
+node --version  # Should be v18+
 ```
 
 **Document findings in your work log:**
 - Package manager: yarn
 - Build system: Rollup + Babel
 - Test runner: Jest + Testcontainers
-- Node.js: v24+
+- Node.js: v18+
 
 ### Development Guidelines
 
