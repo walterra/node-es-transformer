@@ -9,14 +9,20 @@ on:
       - main
 
 jobs:
-  build:
+  test-single-version:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        es-version: ['8.17.0', '8.19.11', '9.0.0', '9.3.0']
+      fail-fast: false
+
+    name: Node 22.x / ES ${{ matrix.es-version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 22.x
         uses: actions/setup-node@v6
         with:
           node-version: '22.x'
@@ -27,5 +33,29 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Run tests
+      - name: Run tests against Elasticsearch ${{ matrix.es-version }}
         run: yarn test
+        env:
+          ES_VERSION: ${{ matrix.es-version }}
+
+  test-cross-version:
+    runs-on: ubuntu-latest
+    name: Node 22.x / Cross-Version (ES 8.x → 9.x)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
+
+      - name: Run cross-version tests (ES 8.17.0 → 9.3.0)
+        run: yarn test:cross-version

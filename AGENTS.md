@@ -56,7 +56,7 @@ yarn create-sample-data-10000
 **Pre-Flight Checks:**
 Before modifying dependencies or test setup, verify:
 1. Lock file: `yarn.lock` (do NOT use npm)
-2. Build system: Rollup with Babel (requires Node.js v22+)
+2. Build system: Rollup with Babel (requires Node.js 22+)
 3. Test runner: Jest with testcontainers
 4. Run `yarn build` first to ensure build works
 
@@ -64,17 +64,57 @@ Before modifying dependencies or test setup, verify:
 
 Tests use [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. No manual Docker setup required.
 
+### Version Compatibility
+
+**Multi-Version Support**: The library now supports both ES 8.x and 9.x simultaneously through client aliasing.
+
+- ES client v9.2+ works with ES 9.x servers (uses `compatible-with=9` headers)
+- ES client v8.x works with ES 8.x servers (uses `compatible-with=8` headers)
+- The library auto-detects ES version and uses the appropriate client
+- Supports reindexing from ES 8.x to 9.x (cross-version migration)
+- The library tests against ES 8.x and 9.x versions in CI:
+  - Single-version tests: 8.17.0, 8.19.11, 9.0.0, 9.3.0
+  - Cross-version test: 8.17.0 → 9.3.0 reindexing
+- Requires Node.js 22+
+
+**Installation for Cross-Version Support**:
+```bash
+yarn add es9@npm:@elastic/elasticsearch@^9.2.0
+yarn add es8@npm:@elastic/elasticsearch@^8.17.0
+```
+
 ### Running Tests
 
+**Standard Tests (single ES version):**
 ```bash
 yarn test
 ```
 
-**Test execution flow:**
-1. Testcontainers starts Elasticsearch 8.17.0 in Docker
+To test against a specific ES version:
+```bash
+ES_VERSION=8.17.0 yarn test
+ES_VERSION=9.0.0 yarn test
+ES_VERSION=9.3.0 yarn test  # default
+```
+
+**Cross-Version Tests (ES 8.x → 9.x reindexing):**
+```bash
+yarn test:cross-version
+```
+
+This runs dedicated tests that spin up TWO containers (ES 8.17.0 and ES 9.3.0) simultaneously to test cross-major-version reindexing.
+
+**Test execution flow (standard tests):**
+1. Testcontainers starts Elasticsearch in Docker (version from ES_VERSION or default 9.3.0)
 2. Tests run against the container on a dynamic port
 3. Container stops and cleans up after completion
 4. First run downloads the ES image (1-2 minutes, one-time)
+
+**Test execution flow (cross-version tests):**
+1. Testcontainers starts BOTH ES 8.17.0 and ES 9.3.0 in Docker
+2. Tests reindex data from ES 8.x → ES 9.x
+3. Both containers stop and clean up after completion
+4. More resource-intensive, requires ~4GB RAM
 
 **Requirements:**
 - Docker daemon running (`docker ps` to verify)
@@ -85,10 +125,13 @@ yarn test
 
 **Test Configuration:**
 - Tests run with `--runInBand --detectOpenHandles --forceExit` flags
-- Build is run automatically before tests (`pretest` script)
-- Test files are in `__tests__/**/*.test.js`
-- Global setup: `test/global-testcontainer-setup.js`
-- Global teardown: `test/global-testcontainer-teardown.js`
+- Build is run automatically before tests (`pretest` and `pretest:cross-version` scripts)
+- Standard test files: `__tests__/**/*.test.js` (excluding cross_version_reindex)
+- Cross-version test file: `__tests__/cross_version_reindex.test.js`
+- Standard test setup: `test/global-testcontainer-setup.js`
+- Standard test teardown: `test/global-testcontainer-teardown.js`
+- Cross-version setup: `test/cross-version-setup.js`
+- Cross-version teardown: `test/cross-version-teardown.js`
 
 ## Code Style & Conventions
 
@@ -153,7 +196,7 @@ transform(doc) {
 
 ## Dependencies to Know
 
-- `@elastic/elasticsearch` - Official ES client (v8.17+)
+- `@elastic/elasticsearch` - Official ES client (v9.2+ for ES 9.x, v8.17+ for ES 8.x via alias)
 - `event-stream` & `split2` - Streaming utilities
 - `cli-progress` - Progress bars for ingestion
 - `glob` - File pattern matching

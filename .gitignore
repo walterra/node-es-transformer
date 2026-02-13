@@ -4,3 +4,5 @@ dist
 
 # Testcontainers
 .testcontainer-url
+.testcontainer-es8-url
+.testcontainer-es9-url
