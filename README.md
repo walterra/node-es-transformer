@@ -26,11 +26,11 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 
 ## Version Compatibility
 
-| node-es-transformer | Elasticsearch Client | Elasticsearch Server | Node.js |
-|---------------------|---------------------|---------------------|---------|
-| 1.0.0-beta8+        | 8.x and 9.x         | 8.x and 9.x         | 22+     |
-| 1.0.0-beta7         | 9.x only            | 9.x only            | 22+     |
-| 1.0.0-beta6 and earlier | 8.x            | 8.x                 | 22+     |
+| node-es-transformer     | Elasticsearch Client | Elasticsearch Server | Node.js |
+| ----------------------- | -------------------- | -------------------- | ------- |
+| 1.0.0-beta8+            | 8.x and 9.x          | 8.x and 9.x          | 22+     |
+| 1.0.0-beta7             | 9.x only             | 9.x only             | 22+     |
+| 1.0.0-beta6 and earlier | 8.x                  | 8.x                  | 22+     |
 
 **Multi-Version Support**: Starting with v1.0.0-beta8, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
 
@@ -124,28 +124,32 @@ const transformer = require('node-es-transformer');
 transformer({
   sourceClientConfig: {
     node: 'https://es8-cluster.example.com:9200',
-    auth: { apiKey: 'your-es8-api-key' }
+    auth: { apiKey: 'your-es8-api-key' },
   },
   targetClientConfig: {
     node: 'https://es9-cluster.example.com:9200',
-    auth: { apiKey: 'your-es9-api-key' }
+    auth: { apiKey: 'your-es9-api-key' },
   },
   sourceIndexName: 'my-source-index',
   targetIndexName: 'my-target-index',
   transform(doc) {
     // Optional transformation during reindexing
     return doc;
-  }
+  },
 });
 
 // Explicit version specification (if auto-detection fails)
 transformer({
-  sourceClientConfig: { /* ... */ },
-  targetClientConfig: { /* ... */ },
-  sourceClientVersion: 8,  // Force ES 8.x client
-  targetClientVersion: 9,  // Force ES 9.x client
+  sourceClientConfig: {
+    /* ... */
+  },
+  targetClientConfig: {
+    /* ... */
+  },
+  sourceClientVersion: 8, // Force ES 8.x client
+  targetClientVersion: 9, // Force ES 9.x client
   sourceIndexName: 'my-source-index',
-  targetIndexName: 'my-target-index'
+  targetIndexName: 'my-target-index',
 });
 
 // Using pre-instantiated clients (advanced)
@@ -153,17 +157,17 @@ const { Client: Client8 } = require('es8');
 const { Client: Client9 } = require('es9');
 
 const sourceClient = new Client8({
-  node: 'https://es8-cluster.example.com:9200'
+  node: 'https://es8-cluster.example.com:9200',
 });
 const targetClient = new Client9({
-  node: 'https://es9-cluster.example.com:9200'
+  node: 'https://es9-cluster.example.com:9200',
 });
 
 transformer({
   sourceClient,
   targetClient,
   sourceIndexName: 'my-source-index',
-  targetIndexName: 'my-target-index'
+  targetIndexName: 'my-target-index',
 });
 ```
 
@@ -237,13 +241,15 @@ The `transformer()` function returns a Promise that resolves to an object with:
   - `'error'`: Error occurred
 
 ```javascript
-const result = await transformer({ /* options */ });
+const result = await transformer({
+  /* options */
+});
 
 result.events.on('complete', () => {
   console.log('Ingestion complete!');
 });
 
-result.events.on('error', (err) => {
+result.events.on('error', err => {
   console.error('Error:', err);
 });
 ```
@@ -257,7 +263,7 @@ import transformer, { TransformerOptions } from 'node-es-transformer';
 
 const options: TransformerOptions = {
   fileName: 'data.json',
-  targetIndexName: 'my-index'
+  targetIndexName: 'my-index',
 };
 ```
 
@@ -267,6 +273,7 @@ See [examples/typescript-example.ts](examples/typescript-example.ts) for more ex
 
 - **[README.md](README.md)** - Getting started and API reference (you are here)
 - **[examples/](examples/)** - Practical code samples for common use cases
+- **[VERSIONING.md](VERSIONING.md)** - API stability guarantees and versioning policy
 - **[PERFORMANCE.md](PERFORMANCE.md)** - Benchmarks, tuning, and optimization guide
 - **[MIGRATION.md](MIGRATION.md)** - Upgrading from beta to v1.0.0
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute (open an issue first!)
@@ -278,13 +285,17 @@ See [examples/typescript-example.ts](examples/typescript-example.ts) for more ex
 Always handle errors when using the library:
 
 ```javascript
-transformer({ /* options */ })
+transformer({
+  /* options */
+})
   .then(() => console.log('Success'))
   .catch(err => console.error('Error:', err));
 
 // Or with async/await
 try {
-  await transformer({ /* options */ });
+  await transformer({
+    /* options */
+  });
   console.log('Success');
 } catch (err) {
   console.error('Error:', err);
