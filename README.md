@@ -16,11 +16,13 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 
 ## Features
 
-- Buffering/Streaming for both reading and indexing. Files are read using streaming and Elasticsearch ingestion is done using buffered bulk indexing. This is tailored towards ingestion of large files. Successfully tested so far with JSON and CSV files in the range of 20-30 GBytes. On a single machine running both `node-es-transformer` and Elasticsearch ingestion rates up to 20k documents/second were achieved (2,9 GHz Intel Core i7, 16GByte RAM, SSD), depending on document size.
-- Supports wildcards to ingest/transform a range of files in one go.
-- Supports fetching documents from existing indices using search/scroll. This allows you to reindex with custom data transformations just using JavaScript in the `transform` callback.
-- Supports ingesting docs based on a nodejs stream.
-- The `transform` callback gives you each source document, but you can split it up in multiple ones and return an array of documents. An example use case for this: Each source document is a Tweet and you want to transform that into an entity centric index based on Hashtags.
+- **Streaming and buffering**: Files are read using streams and Elasticsearch ingestion uses buffered bulk indexing. Handles very large files (20-30 GB tested) without running out of memory.
+- **High throughput**: Up to 20k documents/second on a single machine (2.9 GHz Intel Core i7, 16GB RAM, SSD), depending on document size. See [PERFORMANCE.md](PERFORMANCE.md) for benchmarks and tuning guidance.
+- **Wildcard support**: Ingest multiple files matching a pattern (e.g., `logs/*.json`).
+- **Flexible sources**: Read from files, Elasticsearch indices, or Node.js streams.
+- **Reindexing with transforms**: Fetch documents from existing indices and transform them using JavaScript.
+- **Document splitting**: Transform one source document into multiple target documents (e.g., tweets → hashtags).
+- **Cross-version support**: Seamlessly reindex between Elasticsearch 8.x and 9.x.
 
 ## Version Compatibility
 
@@ -260,6 +262,16 @@ const options: TransformerOptions = {
 ```
 
 See [examples/typescript-example.ts](examples/typescript-example.ts) for more examples.
+
+## Documentation
+
+- **[README.md](README.md)** - Getting started and API reference (you are here)
+- **[examples/](examples/)** - Practical code samples for common use cases
+- **[PERFORMANCE.md](PERFORMANCE.md)** - Benchmarks, tuning, and optimization guide
+- **[MIGRATION.md](MIGRATION.md)** - Upgrading from beta to v1.0.0
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute (open an issue first!)
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development setup and testing
+- **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
 
 ### Error Handling
 
