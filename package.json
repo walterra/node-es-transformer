@@ -21,7 +21,7 @@
   "main": "dist/node-es-transformer.cjs.js",
   "module": "dist/node-es-transformer.esm.js",
   "dependencies": {
-    "@elastic/elasticsearch": "^8.17.0",
+    "@elastic/elasticsearch": "^9.2.0",
     "cli-progress": "^3.12.0",
     "event-stream": "^3.3.4",
     "glob": "^7.2.3",
