@@ -57,7 +57,7 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jest": "^28.10.0",
-    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-prettier": "^4.2.5",
     "git-cz": "^4.9.0",
     "jest": "^30.2.0",
     "prettier": "^2.2.1",
