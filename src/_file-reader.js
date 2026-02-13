@@ -1,6 +1,6 @@
 import fs from 'fs';
 import es from 'event-stream';
-import glob from 'glob';
+import { globSync } from 'glob';
 import split from 'split2';
 
 export default function fileReaderFactory(indexer, fileName, transform, splitRegex, verbose) {
@@ -70,8 +70,11 @@ export default function fileReaderFactory(indexer, fileName, transform, splitReg
   }
 
   return () => {
-    glob(fileName, (er, files) => {
+    try {
+      const files = globSync(fileName);
       startIndex(files);
-    });
+    } catch (error) {
+      console.log('Error matching files:', error);
+    }
   };
 }
