@@ -64,6 +64,8 @@ Before modifying dependencies or test setup, verify:
 
 Tests use [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. No manual Docker setup required.
 
+**Note:** The project uses `resolutions` in package.json to force `undici@^6.x` for Node.js 18 compatibility (testcontainers requires undici 7.x which needs Node 20+).
+
 ### Running Tests
 
 ```bash
