@@ -19,7 +19,7 @@ This library is designed to handle very large data files (tested up to 20-30 GB)
 ## Architecture
 
 - **Built with**: Rollup for bundling (CommonJS + ESM)
-- **Node.js**: v18+ (see `.nvmrc`)
+- **Node.js**: v22+ (see `.nvmrc`)
 - **Entry point**: `src/main.js`
 - **Core modules**:
   - `_file-reader.js` - Streaming file ingestion
@@ -56,15 +56,13 @@ yarn create-sample-data-10000
 **Pre-Flight Checks:**
 Before modifying dependencies or test setup, verify:
 1. Lock file: `yarn.lock` (do NOT use npm)
-2. Build system: Rollup with Babel (requires Node.js v18+)
+2. Build system: Rollup with Babel (requires Node.js v22+)
 3. Test runner: Jest with testcontainers
 4. Run `yarn build` first to ensure build works
 
 ## Testing Requirements
 
 Tests use [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. No manual Docker setup required.
-
-**Note:** The project uses `resolutions` in package.json to force `undici@^6.x` for Node.js 18 compatibility (testcontainers requires undici 7.x which needs Node 20+).
 
 ### Running Tests
 
@@ -80,7 +78,7 @@ yarn test
 
 **Requirements:**
 - Docker daemon running (`docker ps` to verify)
-- Node.js 16+
+- Node.js 22+
 - At least 2GB available memory for ES container
 
 **Fallback:** If Elasticsearch is already running on `http://localhost:9200`, tests will use it instead.
@@ -168,32 +166,147 @@ transform(doc) {
 4. **File Encoding**: Assumes UTF-8 encoding
 5. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
 6. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
-7. **Node.js Version**: Requires v18+ (see `.nvmrc`)
+7. **Node.js Version**: Requires v22+ (see `.nvmrc`)
 8. **Open Handles Warning**: Pre-existing Jest warning about stream cleanup (see issue #23). Tests use `--forceExit` to handle this
 
 ## PR Guidelines
 
 - Run `yarn lint` and `yarn test` before committing
 - Use `cz` for commit messages (Commitizen)
-- Tests must pass in CI (GitHub Actions workflow in `.github/workflows/ci.yml`)
-- Update CHANGELOG.md using `yarn release` (commit-and-tag-version)
+- Write ONE changeset file in `.changeset/your-change.md` with concise one-liner covering all PR changes
+- Tests must pass in CI (GitHub Actions workflows in `.github/workflows/`)
 - Ensure both CommonJS and ESM builds work
 - Add tests for new features or bug fixes
 
+**Changeset Rule:** One changeset per PR that describes all changes. If you add multiple features/fixes in one PR, combine them into one changeset with the highest version bump needed.
+
 ## Release Process
 
-**Note:** This project uses `commit-and-tag-version`, not changesets (see issue #24 for future changeset support)
+This project uses [Changesets](https://github.com/changesets/changesets) for version management and releases.
 
-1. Make your changes and commit using `cz` (Commitizen for conventional commits)
-2. Run `yarn release -- --release-as <version>` (e.g., `1.0.0-beta8`)
-3. This updates version in `package.json` and auto-generates `CHANGELOG.md` from commit history
-4. Push tags to trigger CI/CD
+### Adding a Changeset (for Coding Agents)
 
-**Conventional Commit Format:**
-- `feat:` - New feature (minor version bump)
-- `fix:` - Bug fix (patch version bump)
-- `BREAKING CHANGE:` - Major version bump
-- `docs:`, `chore:`, `refactor:`, etc. - No version bump
+**Important: ONE changeset per PR/branch.** Combine all changes into a single changeset file.
+
+**Coding agents should write changeset files directly** (avoid interactive commands):
+
+1. Create ONE `.md` file in `.changeset/` with a descriptive kebab-case name
+2. Write a concise one-liner describing all changes in the PR
+3. Use the highest version bump needed (major > minor > patch)
+
+**Format:**
+```markdown
+---
+"node-es-transformer": patch|minor|major
+---
+
+Concise one-line description of the change(s)
+```
+
+**Examples:**
+
+**Patch (bug fix):**
+```markdown
+---
+"node-es-transformer": patch
+---
+
+Fix memory leak in stream cleanup
+```
+
+**Minor (new feature):**
+```markdown
+---
+"node-es-transformer": minor
+---
+
+Add support for gzip-compressed files
+```
+
+**Major (breaking change):**
+```markdown
+---
+"node-es-transformer": major
+---
+
+Update to Node.js 22 and add automated publishing (breaking: requires Node 22+)
+```
+
+**Multiple changes in one PR:**
+```markdown
+---
+"node-es-transformer": minor
+---
+
+Add retry logic and improve error messages
+```
+
+### Adding a Changeset (for Human Developers)
+
+Interactive command (not suitable for agents):
+
+```bash
+yarn changeset
+```
+
+### Release Workflow
+
+1. **During Development:**
+   - Make changes and commit using `cz` (Commitizen)
+   - Agents: Write changeset file directly in `.changeset/`
+   - Humans: Run `yarn changeset` interactively
+   - Commit the changeset file with your changes
+
+2. **Automated Release PR:**
+   - When changesets are pushed to `main`, the release workflow automatically creates/updates a release PR
+   - The PR includes version bumps and updated CHANGELOG.md
+
+3. **Creating a Release:**
+   - Review and merge the release PR
+   - Automatically triggers:
+     - GitHub release created with version tag and changelog
+     - Publish workflow runs automatically and publishes to npm
+
+### npm Publishing
+
+**Automatic:** When a GitHub release is published, the publish workflow automatically runs and publishes to npm.
+
+**Manual:** Use the publish workflow for testing or manual releases:
+
+```bash
+# Test packaging locally
+yarn pack:dry-run
+
+# Build actual tarball
+yarn pack
+```
+
+**GitHub Actions:**
+- `.github/workflows/release.yml` - Creates release PR and GitHub release (no publishing)
+- `.github/workflows/publish.yml` - Publishes to npm (triggered by release OR manual workflow dispatch)
+
+**Requirements:**
+- `NPM_TOKEN` secret must be set in GitHub repository settings
+- Token should have publish permissions for the package
+
+### Version Bump Guidelines
+
+- **patch** (0.0.x): Bug fixes, documentation updates, internal refactors
+- **minor** (0.x.0): New features, non-breaking API additions
+- **major** (x.0.0): Breaking changes, API removals
+
+### Checking Status
+
+```bash
+# View pending changesets
+yarn changeset:status
+
+# Preview what will be released
+find .changeset -name "*.md" ! -name "README.md"
+
+# Test package locally
+yarn pack:dry-run
+```
 
 ## Useful Examples
 
@@ -223,14 +336,14 @@ yarn build
 grep -A 5 '"jest"' package.json
 
 # 4. Verify Node.js version
-node --version  # Should be v18+
+node --version  # Should be v22+
 ```
 
 **Document findings in your work log:**
 - Package manager: yarn
 - Build system: Rollup + Babel
 - Test runner: Jest + Testcontainers
-- Node.js: v18+
+- Node.js: v22+
 
 ### Development Guidelines
 
