@@ -79,11 +79,11 @@ If you need to ingest large CSV/JSON files (GigaBytes) into Elasticsearch withou
 
 | node-es-transformer     | Elasticsearch Client | Elasticsearch Server | Node.js |
 | ----------------------- | -------------------- | -------------------- | ------- |
-| 1.0.0-beta8+            | 8.x and 9.x          | 8.x and 9.x          | 22+     |
+| 1.0.0+                  | 8.x and 9.x          | 8.x and 9.x          | 22+     |
 | 1.0.0-beta7             | 9.x only             | 9.x only             | 22+     |
 | 1.0.0-beta6 and earlier | 8.x                  | 8.x                  | 22+     |
 
-**Multi-Version Support**: Starting with v1.0.0-beta8, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
+**Multi-Version Support**: Starting with v1.0.0, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
 
 **Upgrading?** See [MIGRATION.md](MIGRATION.md) for upgrade guidance from beta versions to v1.0.0.
 
