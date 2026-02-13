@@ -53,27 +53,25 @@ export default function createMappingFactory({
         if (indexExists === false || deleteIndex === true) {
           const resp = await targetClient.indices.create({
             index: targetIndexName,
-            body: {
-              mappings: targetMappings,
-              ...(pipeline !== undefined
-                ? {
-                    settings: {
-                      index: {
-                        default_pipeline: pipeline,
-                      },
+            mappings: targetMappings,
+            ...(pipeline !== undefined
+              ? {
+                  settings: {
+                    index: {
+                      default_pipeline: pipeline,
                     },
-                  }
-                : {}),
-              ...(indexMappingTotalFieldsLimit !== undefined
-                ? {
-                    settings: {
-                      'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
-                      'index.number_of_shards': 1,
-                      'index.number_of_replicas': 0,
-                    },
-                  }
-                : {}),
-            },
+                  },
+                }
+              : {}),
+            ...(indexMappingTotalFieldsLimit !== undefined
+              ? {
+                  settings: {
+                    'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
+                    'index.number_of_shards': 1,
+                    'index.number_of_replicas': 0,
+                  },
+                }
+              : {}),
           });
           if (verbose) console.log('Created target mapping', resp);
         }

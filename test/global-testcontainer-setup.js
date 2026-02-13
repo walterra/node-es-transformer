@@ -49,10 +49,15 @@ module.exports = async function globalSetup() {
   }
 
   try {
-    console.log('🐳 Starting Elasticsearch testcontainer...');
+    // Allow ES version to be configured via environment variable
+    // Default to 9.3.0 for local development
+    const esVersion = process.env.ES_VERSION || '9.3.0';
+    const esImage = `docker.elastic.co/elasticsearch/elasticsearch:${esVersion}`;
+
+    console.log(`🐳 Starting Elasticsearch testcontainer (version: ${esVersion})...`);
 
     // Start Elasticsearch container
-    container = await new ElasticsearchContainer('docker.elastic.co/elasticsearch/elasticsearch:8.17.0')
+    container = await new ElasticsearchContainer(esImage)
       .withEnvironment({
         'discovery.type': 'single-node',
         'xpack.security.enabled': 'false',

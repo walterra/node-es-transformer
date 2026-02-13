@@ -22,6 +22,16 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 - Supports ingesting docs based on a nodejs stream.
 - The `transform` callback gives you each source document, but you can split it up in multiple ones and return an array of documents. An example use case for this: Each source document is a Tweet and you want to transform that into an entity centric index based on Hashtags.
 
+## Version Compatibility
+
+| node-es-transformer | Elasticsearch Client | Elasticsearch Server | Node.js |
+|---------------------|---------------------|---------------------|---------|
+| 1.0.0-beta8+        | 8.x and 9.x         | 8.x and 9.x         | 22+     |
+| 1.0.0-beta7         | 9.x only            | 9.x only            | 22+     |
+| 1.0.0-beta6 and earlier | 8.x            | 8.x                 | 22+     |
+
+**Multi-Version Support**: Starting with v1.0.0-beta8, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
+
 ## Getting started
 
 In your node-js project, add `node-es-transformer` as a dependency (`yarn add node-es-transformer` or `npm install node-es-transformer`).
@@ -95,10 +105,73 @@ transformer({
 });
 ```
 
+### Reindex from Elasticsearch 8.x to 9.x
+
+The library automatically detects the Elasticsearch version and uses the appropriate client. This enables seamless reindexing between major versions:
+
+```javascript
+const transformer = require('node-es-transformer');
+
+// Auto-detection (recommended)
+transformer({
+  sourceClientConfig: {
+    node: 'https://es8-cluster.example.com:9200',
+    auth: { apiKey: 'your-es8-api-key' }
+  },
+  targetClientConfig: {
+    node: 'https://es9-cluster.example.com:9200',
+    auth: { apiKey: 'your-es9-api-key' }
+  },
+  sourceIndexName: 'my-source-index',
+  targetIndexName: 'my-target-index',
+  transform(doc) {
+    // Optional transformation during reindexing
+    return doc;
+  }
+});
+
+// Explicit version specification (if auto-detection fails)
+transformer({
+  sourceClientConfig: { /* ... */ },
+  targetClientConfig: { /* ... */ },
+  sourceClientVersion: 8,  // Force ES 8.x client
+  targetClientVersion: 9,  // Force ES 9.x client
+  sourceIndexName: 'my-source-index',
+  targetIndexName: 'my-target-index'
+});
+
+// Using pre-instantiated clients (advanced)
+const { Client: Client8 } = require('es8');
+const { Client: Client9 } = require('es9');
+
+const sourceClient = new Client8({
+  node: 'https://es8-cluster.example.com:9200'
+});
+const targetClient = new Client9({
+  node: 'https://es9-cluster.example.com:9200'
+});
+
+transformer({
+  sourceClient,
+  targetClient,
+  sourceIndexName: 'my-source-index',
+  targetIndexName: 'my-target-index'
+});
+```
+
+**Note**: To use pre-instantiated clients with different ES versions, install both client versions:
+
+```bash
+npm install es9@npm:@elastic/elasticsearch@^9.2.0
+npm install es8@npm:@elastic/elasticsearch@^8.17.0
+```
+
 ### Options
 
 - `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
-- `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`.
+- `sourceClient`/`targetClient`: Pre-instantiated Elasticsearch client instances. If provided, these will be used instead of creating new clients.
+- `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`. Ignored if `sourceClient`/`targetClient` are provided.
+- `sourceClientVersion`/`targetClientVersion`: Force specific ES client version (8 or 9). Useful if auto-detection fails. Defaults to auto-detection.
 - `bufferSize`: The threshold to flush bulk index request in KBytes, defaults to `5120`.
 - `searchSize`: The amount of documents to be fetched with each search request when reindexing from another source index.
 - `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` and `stream` are not allowed.
@@ -134,18 +207,36 @@ yarn
 
 `yarn dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
 
-`yarn test` runs the tests using [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. **No manual Docker setup is required** - the container starts automatically before tests and stops after completion.
+### Testing
 
+This project uses [Testcontainers](https://node.testcontainers.org/) to run tests against real Elasticsearch instances in Docker. **No manual Docker setup is required** - containers start automatically before tests.
+
+**Standard Tests** (single ES version):
 ```bash
 yarn test
 ```
 
+By default, tests run against ES 9.3.0. You can test against different versions:
+
+```bash
+ES_VERSION=8.17.0 yarn test
+ES_VERSION=9.0.0 yarn test
+```
+
+**Cross-Version Tests** (ES 8.x → 9.x reindexing):
+```bash
+yarn test:cross-version
+```
+
+This spins up TWO containers simultaneously (ES 8.17.0 and ES 9.3.0) and tests reindexing between major versions. This is more resource-intensive and takes longer to run.
+
 **Requirements:**
 - Docker daemon running
 - Node.js 22+
-- At least 2GB available memory for the Elasticsearch container
+- At least 2GB available memory for single-version tests
+- At least 4GB available memory for cross-version tests
 
-The first test run will download the Elasticsearch Docker image (Elasticsearch 8.17.0, one-time setup). Subsequent runs reuse the image.
+The first test run will download the Elasticsearch Docker image (Elasticsearch 9.3.0, one-time setup). Subsequent runs reuse the image.
 
 **Note:** If you prefer to run tests against a manually managed Elasticsearch instance, you can start one on `http://localhost:9200` and the tests will use it as a fallback.
 
