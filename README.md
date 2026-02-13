@@ -275,6 +275,7 @@ See [examples/typescript-example.ts](examples/typescript-example.ts) for more ex
 - **[examples/](examples/)** - Practical code samples for common use cases
 - **[VERSIONING.md](VERSIONING.md)** - API stability guarantees and versioning policy
 - **[PERFORMANCE.md](PERFORMANCE.md)** - Benchmarks, tuning, and optimization guide
+- **[TESTING.md](TESTING.md)** - Test coverage, approach, and how to run tests
 - **[MIGRATION.md](MIGRATION.md)** - Upgrading from beta to v1.0.0
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute (open an issue first!)
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development setup and testing

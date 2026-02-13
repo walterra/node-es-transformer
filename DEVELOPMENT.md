@@ -31,6 +31,8 @@ yarn
 
 This project uses [Testcontainers](https://node.testcontainers.org/) to run tests against real Elasticsearch instances in Docker. **No manual Docker setup is required** - containers start automatically before tests.
 
+For detailed information about test coverage, writing tests, and debugging, see [TESTING.md](TESTING.md).
+
 ### Standard Tests (single ES version)
 
 ```bash
