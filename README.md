@@ -32,6 +32,8 @@ While I'd generally recommend using [Logstash](https://www.elastic.co/products/l
 
 **Multi-Version Support**: Starting with v1.0.0-beta8, the library supports both Elasticsearch 8.x and 9.x through automatic version detection and client aliasing. This enables seamless reindexing between major versions (e.g., migrating from ES 8.x to 9.x). All functionality is tested in CI against multiple ES versions including cross-version reindexing scenarios.
 
+**Upgrading?** See [MIGRATION.md](MIGRATION.md) for upgrade guidance from beta versions to v1.0.0.
+
 ## Installation
 
 ```bash
@@ -170,31 +172,131 @@ npm install es9@npm:@elastic/elasticsearch@^9.2.0
 npm install es8@npm:@elastic/elasticsearch@^8.17.0
 ```
 
-## API Options
+## API Reference
 
-- `deleteIndex`: Setting to automatically delete an existing index, default is `false`.
-- `sourceClient`/`targetClient`: Pre-instantiated Elasticsearch client instances. If provided, these will be used instead of creating new clients.
-- `sourceClientConfig`/`targetClientConfig`: Optional Elasticsearch client options, defaults to `{ node: 'http://localhost:9200' }`. Ignored if `sourceClient`/`targetClient` are provided.
-- `sourceClientVersion`/`targetClientVersion`: Force specific ES client version (8 or 9). Useful if auto-detection fails. Defaults to auto-detection.
-- `bufferSize`: The threshold to flush bulk index request in KBytes, defaults to `5120`.
-- `searchSize`: The amount of documents to be fetched with each search request when reindexing from another source index.
-- `fileName`: Source filename to ingest, supports wildcards. If this is set, `sourceIndexName` and `stream` are not allowed.
-- `stream`: Source nodejs stream to ingest. If this is set, `sourceIndexName` and `fileName` are not allowed.
-- `splitRegex`: Custom line split regex, defaults to `/\n/`.
-- `sourceIndexName`: The source Elasticsearch index to reindex from. If this is set, `fileName` and `stream` are not allowed.
-- `targetIndexName`: The target Elasticsearch index where documents will be indexed.
-- `mappings`: Optional Elasticsearch document mappings. If not set and you're reindexing from another index, the mappings from the existing index will be used.
-- `mappingsOverride`: If you're reindexing and this is set to `true`, `mappings` will be applied on top of the source index's mappings. Defaults to `false`.
-- `indexMappingTotalFieldsLimit`: Optional field limit for the target index to be created that will be passed on as the `index.mapping.total_fields.limit` setting.
-- `populatedFields`: If `true`, fetches a set of random documents to identify which fields are actually used by documents. Can be useful for indices with lots of field mappings to increase query/reindex performance. Defaults to `false`.
-- `query`: Optional Elasticsearch [DSL query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) to filter documents from the source index.
-- `skipHeader`: If true, skips the first line of the source file. Defaults to `false`.
-- `transform(line)`: A callback function which allows the transformation of a source line into one or several documents.
-- `verbose`: Logging verbosity, defaults to `true`
+### Configuration Options
+
+All options are passed to the main `transformer()` function.
+
+#### Required Options
+
+- **`targetIndexName`** (string): The target Elasticsearch index where documents will be indexed.
+
+#### Source Options
+
+Choose **one** of these sources:
+
+- **`fileName`** (string): Source filename to ingest. Supports wildcards (e.g., `logs/*.json`).
+- **`sourceIndexName`** (string): Source Elasticsearch index to reindex from.
+- **`stream`** (Readable): Node.js readable stream to ingest from.
+
+#### Client Configuration
+
+- **`sourceClient`** (Client): Pre-instantiated Elasticsearch client for source operations. If provided, `sourceClientConfig` is ignored.
+- **`targetClient`** (Client): Pre-instantiated Elasticsearch client for target operations. If not provided, uses `sourceClient` or creates from config.
+- **`sourceClientConfig`** (object): Elasticsearch client configuration for source. Default: `{ node: 'http://localhost:9200' }`. Ignored if `sourceClient` is provided.
+- **`targetClientConfig`** (object): Elasticsearch client configuration for target. If not provided, uses `sourceClientConfig`. Ignored if `targetClient` is provided.
+- **`sourceClientVersion`** (8 | 9): Force specific ES client version for source. Auto-detected if not specified.
+- **`targetClientVersion`** (8 | 9): Force specific ES client version for target. Auto-detected if not specified.
+
+#### Index Configuration
+
+- **`mappings`** (object): Elasticsearch document mappings for target index. If reindexing and not provided, mappings are copied from source index.
+- **`mappingsOverride`** (boolean): When reindexing, apply `mappings` on top of source index mappings. Default: `false`.
+- **`deleteIndex`** (boolean): Delete target index if it exists before starting. Default: `false`.
+- **`indexMappingTotalFieldsLimit`** (number): Field limit for target index (`index.mapping.total_fields.limit` setting).
+- **`pipeline`** (string): Elasticsearch ingest pipeline name to use during indexing.
+
+#### Performance Options
+
+- **`bufferSize`** (number): Buffer size threshold in KBytes for bulk indexing. Default: `5120` (5 MB).
+- **`searchSize`** (number): Number of documents to fetch per search request when reindexing. Default: `100`.
+- **`populatedFields`** (boolean): Detect which fields are actually populated in documents. Useful for optimizing indices with many mapped but unused fields. Default: `false`.
+
+#### Processing Options
+
+- **`transform`** (function): Callback to transform documents. Signature: `(doc, context?) => doc | doc[] | null | undefined`.
+  - Return transformed document
+  - Return array of documents to split one source into multiple targets
+  - Return `null`/`undefined` to skip document
+- **`query`** (object): Elasticsearch [DSL query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) to filter source documents.
+- **`splitRegex`** (RegExp): Line split regex for file/stream sources. Default: `/\n/`.
+- **`skipHeader`** (boolean): Skip first line of source file (e.g., CSV header). Default: `false`.
+- **`verbose`** (boolean): Enable logging and progress bars. Default: `true`.
+
+### Return Value
+
+The `transformer()` function returns a Promise that resolves to an object with:
+
+- **`events`** (EventEmitter): Event emitter for monitoring progress.
+  - `'queued'`: Document added to queue
+  - `'indexed'`: Document successfully indexed
+  - `'complete'`: All documents processed
+  - `'error'`: Error occurred
+
+```javascript
+const result = await transformer({ /* options */ });
+
+result.events.on('complete', () => {
+  console.log('Ingestion complete!');
+});
+
+result.events.on('error', (err) => {
+  console.error('Error:', err);
+});
+```
+
+### TypeScript Support
+
+Full TypeScript definitions are included. Import types for type-safe configuration:
+
+```typescript
+import transformer, { TransformerOptions } from 'node-es-transformer';
+
+const options: TransformerOptions = {
+  fileName: 'data.json',
+  targetIndexName: 'my-index'
+};
+```
+
+See [examples/typescript-example.ts](examples/typescript-example.ts) for more examples.
+
+### Error Handling
+
+Always handle errors when using the library:
+
+```javascript
+transformer({ /* options */ })
+  .then(() => console.log('Success'))
+  .catch(err => console.error('Error:', err));
+
+// Or with async/await
+try {
+  await transformer({ /* options */ });
+  console.log('Success');
+} catch (err) {
+  console.error('Error:', err);
+}
+```
+
+### More Examples
+
+See the [examples/](examples/) directory for practical code samples covering:
+
+- Basic file ingestion
+- Reindexing with transformations
+- Cross-version migration (ES 8.x → 9.x)
+- Document splitting
+- Wildcard file processing
+- Stream-based ingestion
 
 ## Contributing
 
-Contributions are welcome! Please see [DEVELOPMENT.md](DEVELOPMENT.md) for development setup, testing, and release guidelines.
+Contributions are welcome! Before starting work on a PR, please open an issue to discuss your proposed changes.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines and PR process
+- [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup, testing, and release process
+- [SECURITY.md](SECURITY.md) - Security policy and vulnerability reporting
 
 ## License
 
