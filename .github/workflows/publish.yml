@@ -1,0 +1,95 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Publish target"
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - npm
+
+jobs:
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Build tarball
+        run: npm pack --silent
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: "*.tgz"
+
+  publish-dry-run:
+    name: Publish dry run
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'dry-run'
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: dist
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Dry-run publish
+        run: npm publish --dry-run ./dist/*.tgz
+
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'npm')
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: dist
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public ./dist/*.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

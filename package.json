@@ -59,6 +59,8 @@
     "changeset:add": "changeset add",
     "changeset:status": "changeset status",
     "version": "changeset version",
+    "pack": "npm pack",
+    "pack:dry-run": "npm pack --dry-run",
     "create-sample-data-10000": "node scripts/create_sample_data_10000",
     "create-sample-data-100": "node scripts/create_sample_data_100"
   },

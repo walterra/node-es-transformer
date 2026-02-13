@@ -249,8 +249,31 @@ yarn changeset
 
 3. **Creating a Release:**
    - Review and merge the release PR
-   - A GitHub release is automatically created with the version tag
-   - The changelog is extracted from CHANGELOG.md
+   - Automatically triggers:
+     - GitHub release created with version tag and changelog
+     - Publish workflow runs automatically and publishes to npm
+
+### npm Publishing
+
+**Automatic:** When a GitHub release is published, the publish workflow automatically runs and publishes to npm.
+
+**Manual:** Use the publish workflow for testing or manual releases:
+
+```bash
+# Test packaging locally
+yarn pack:dry-run
+
+# Build actual tarball
+yarn pack
+```
+
+**GitHub Actions:**
+- `.github/workflows/release.yml` - Creates release PR and GitHub release (no publishing)
+- `.github/workflows/publish.yml` - Publishes to npm (triggered by release OR manual workflow dispatch)
+
+**Requirements:**
+- `NPM_TOKEN` secret must be set in GitHub repository settings
+- Token should have publish permissions for the package
 
 ### Version Bump Guidelines
 
@@ -266,6 +289,9 @@ yarn changeset:status
 
 # Preview what will be released
 find .changeset -name "*.md" ! -name "README.md"
+
+# Test package locally
+yarn pack:dry-run
 ```
 
 ## Useful Examples
