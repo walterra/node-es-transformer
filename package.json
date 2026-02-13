@@ -1,13 +1,26 @@
 {
   "name": "node-es-transformer",
-  "description": "A nodejs based library to (re)index and transform data from/to Elasticsearch.",
+  "description": "Stream-based library for ingesting and transforming large data files (CSV/JSON) into Elasticsearch indices. Supports ES 8.x and 9.x with cross-version reindexing.",
   "keywords": [
     "elasticsearch",
-    "data-transformation"
+    "elasticsearch-client",
+    "data-ingestion",
+    "data-transformation",
+    "reindex",
+    "bulk-indexing",
+    "csv",
+    "json",
+    "streaming",
+    "etl",
+    "elasticsearch-8",
+    "elasticsearch-9"
   ],
   "private": false,
-  "homepage": "https://github.com/walterra/node-es-transformer",
-  "repository": "https://github.com/walterra/node-es-transformer",
+  "homepage": "https://github.com/walterra/node-es-transformer#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/walterra/node-es-transformer.git"
+  },
   "bugs": {
     "url": "https://github.com/walterra/node-es-transformer/issues"
   },
