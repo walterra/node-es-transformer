@@ -9,9 +9,9 @@ on:
       - main
 
 jobs:
-  typecheck:
+  checks:
     runs-on: ubuntu-latest
-    name: TypeScript Definitions Check
+    name: Lint & Type Check
 
     steps:
       - name: Checkout code
@@ -25,11 +25,15 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Lint
+        run: yarn lint
+
       - name: Type check
         run: yarn test:types
 
   test-single-version:
     runs-on: ubuntu-latest
+    needs: checks
     strategy:
       matrix:
         es-version: ['8.17.0', '8.19.11', '9.0.0', '9.3.0']
@@ -59,6 +63,7 @@ jobs:
 
   test-cross-version:
     runs-on: ubuntu-latest
+    needs: checks
     name: Node 22.x / Cross-Version (ES 8.x → 9.x)
 
     steps:
