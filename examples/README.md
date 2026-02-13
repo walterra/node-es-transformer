@@ -72,6 +72,15 @@ Shows how to ingest data from Node.js streams (APIs, databases, custom sources).
 - HTTP API streaming
 - Database cursor streaming
 
+### [typescript-example.ts](typescript-example.ts)
+
+Demonstrates TypeScript usage with full type safety and IntelliSense support.
+
+**Key concepts:**
+- Type definitions for all options
+- Typed transform functions
+- Type-safe document interfaces
+
 ## Common Patterns
 
 ### Authentication
