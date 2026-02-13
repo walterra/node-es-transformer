@@ -1,18 +1,69 @@
-[![npm](https://img.shields.io/npm/v/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
-[![npm](https://img.shields.io/npm/l/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
-[![npm](https://img.shields.io/npm/dt/node-es-transformer.svg?maxAge=2592000)](https://www.npmjs.com/package/node-es-transformer)
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![npm version](https://img.shields.io/npm/v/node-es-transformer.svg)](https://www.npmjs.com/package/node-es-transformer)
+[![npm downloads](https://img.shields.io/npm/dt/node-es-transformer.svg)](https://www.npmjs.com/package/node-es-transformer)
+[![license](https://img.shields.io/npm/l/node-es-transformer.svg)](https://github.com/walterra/node-es-transformer/blob/main/LICENSE)
+[![Node.js version](https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg)](https://nodejs.org/)
 [![CI](https://github.com/walterra/node-es-transformer/actions/workflows/ci.yml/badge.svg)](https://github.com/walterra/node-es-transformer/actions)
+[![TypeScript](https://img.shields.io/badge/TypeScript-definitions-blue.svg)](https://github.com/walterra/node-es-transformer/blob/main/index.d.ts)
+[![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.x%20%7C%209.x-005571.svg)](https://www.elastic.co/elasticsearch/)
 
 # node-es-transformer
 
-A nodejs based library to (re)index and transform data from/to Elasticsearch.
+Stream-based library for ingesting and transforming large data files (CSV/JSON) into Elasticsearch indices.
 
-### Why another reindex/ingestion tool?
+## Quick Start
 
-If you're looking for a nodejs based tool which allows you to ingest large CSV/JSON files in the GigaBytes you've come to the right place. Everything else I've tried with larger files runs out of JS heap, hammers ES with too many single requests, times out or tries to do everything with a single bulk request.
+```bash
+npm install node-es-transformer
+```
 
-While I'd generally recommend using [Logstash](https://www.elastic.co/products/logstash), [filebeat](https://www.elastic.co/products/beats/filebeat), [Ingest Nodes](https://www.elastic.co/guide/en/elasticsearch/reference/master/ingest.html), [Elastic Agent](https://www.elastic.co/guide/en/fleet/current/fleet-overview.html) or [Elasticsearch Transforms](https://www.elastic.co/guide/en/elasticsearch/reference/current/transforms.html) for established use cases, this tool may be of help especially if you feel more at home in the JavaScript/nodejs universe and have use cases with customized ingestion and data transformation needs.
+```javascript
+const transformer = require('node-es-transformer');
+
+// Ingest a large JSON file
+await transformer({
+  fileName: 'data.json',
+  targetIndexName: 'my-index',
+  mappings: {
+    properties: {
+      '@timestamp': { type: 'date' },
+      'message': { type: 'text' }
+    }
+  }
+});
+```
+
+See [Usage](#usage) for more examples.
+
+## Why Use This?
+
+If you need to ingest large CSV/JSON files (GigaBytes) into Elasticsearch without running out of memory, this is the tool for you. Other solutions often run out of JS heap, hammer ES with too many requests, time out, or try to do everything in a single bulk request.
+
+**When to use this:**
+- Large file ingestion (20-30 GB tested)
+- Custom JavaScript transformations
+- Cross-version migration (ES 8.x → 9.x)
+- Developer-friendly Node.js workflow
+
+**When to use alternatives:**
+- [Logstash](https://www.elastic.co/products/logstash) - Enterprise ingestion pipelines
+- [Filebeat](https://www.elastic.co/products/beats/filebeat) - Log file shipping
+- [Elastic Agent](https://www.elastic.co/guide/en/fleet/current/fleet-overview.html) - Modern unified agent
+- [Elasticsearch Transforms](https://www.elastic.co/guide/en/elasticsearch/reference/current/transforms.html) - Built-in data transformation
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Version Compatibility](#version-compatibility)
+- [Usage](#usage)
+  - [Read from a file](#read-from-a-file)
+  - [Read from another index](#read-from-another-index)
+  - [Reindex from ES 8.x to 9.x](#reindex-from-elasticsearch-8x-to-9x)
+- [API Reference](#api-reference)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -324,6 +375,16 @@ Contributions are welcome! Before starting work on a PR, please open an issue to
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup, testing, and release process
 - [SECURITY.md](SECURITY.md) - Security policy and vulnerability reporting
 
+## Support
+
+This is a single-person best-effort project. While I aim to address issues and maintain the library, response times may vary. See [VERSIONING.md](VERSIONING.md) for details on API stability and support expectations.
+
+**Getting help:**
+- Check the [documentation](#documentation) first
+- Review [examples/](examples/) for practical code samples
+- Search [existing issues](https://github.com/walterra/node-es-transformer/issues)
+- Open a new issue with details (version, steps to reproduce, expected vs actual behavior)
+
 ## License
 
-[Apache 2.0](LICENSE).
+[Apache 2.0](LICENSE)

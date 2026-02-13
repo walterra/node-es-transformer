@@ -13,7 +13,10 @@
     "streaming",
     "etl",
     "elasticsearch-8",
-    "elasticsearch-9"
+    "elasticsearch-9",
+    "migration",
+    "large-files",
+    "nodejs"
   ],
   "private": false,
   "homepage": "https://github.com/walterra/node-es-transformer#readme",
