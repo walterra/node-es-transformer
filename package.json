@@ -12,7 +12,7 @@
     "url": "https://github.com/walterra/node-es-transformer/issues"
   },
   "license": "Apache-2.0",
-  "author": "Walter Rafelsberger <walter@rafelsberger.at>",
+  "author": "Walter M. Rafelsberger <walter@rafelsberger.at>",
   "contributors": [],
   "version": "1.0.0-beta7",
   "main": "dist/node-es-transformer.cjs.js",
