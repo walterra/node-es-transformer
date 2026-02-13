@@ -19,6 +19,7 @@ This library is designed to handle very large data files (tested up to 20-30 GB)
 ## Architecture
 
 - **Built with**: Rollup for bundling (CommonJS + ESM)
+- **Node.js**: v24+ required (uses `with` syntax for import assertions in `rollup.config.mjs`)
 - **Entry point**: `src/main.js`
 - **Core modules**:
   - `_file-reader.js` - Streaming file ingestion
@@ -28,6 +29,8 @@ This library is designed to handle very large data files (tested up to 20-30 GB)
   - `_create-mapping.js` - Index mapping management
 
 ## Development Commands
+
+**Package Manager: This project uses `yarn`, not `npm`**
 
 ```bash
 # Install dependencies
@@ -39,7 +42,7 @@ yarn build
 # Watch mode for development
 yarn dev
 
-# Run tests (requires Elasticsearch at http://localhost:9200)
+# Run tests (automatic Elasticsearch container via testcontainers)
 yarn test
 
 # Create version and changelog
@@ -50,28 +53,42 @@ yarn create-sample-data-100
 yarn create-sample-data-10000
 ```
 
+**Pre-Flight Checks:**
+Before modifying dependencies or test setup, verify:
+1. Lock file: `yarn.lock` (do NOT use npm)
+2. Build system: Rollup with Babel (requires Node.js v24+)
+3. Test runner: Jest with testcontainers
+4. Run `yarn build` first to ensure build works
+
 ## Testing Requirements
 
-**Critical**: Tests require a running Elasticsearch instance without security at `http://localhost:9200`.
-
-### Setup Test Environment with Docker
-
-```bash
-# Pull the image
-docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
-
-# Run container (no security, single-node)
-docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB \
-  -e "discovery.type=single-node" \
-  -e "xpack.security.enabled=false" \
-  docker.elastic.co/elasticsearch/elasticsearch:8.17.0
-```
+Tests use [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. No manual Docker setup required.
 
 ### Running Tests
 
+```bash
+yarn test
+```
+
+**Test execution flow:**
+1. Testcontainers starts Elasticsearch 8.17.0 in Docker
+2. Tests run against the container on a dynamic port
+3. Container stops and cleans up after completion
+4. First run downloads the ES image (1-2 minutes, one-time)
+
+**Requirements:**
+- Docker daemon running (`docker ps` to verify)
+- Node.js 16+
+- At least 2GB available memory for ES container
+
+**Fallback:** If Elasticsearch is already running on `http://localhost:9200`, tests will use it instead.
+
+**Test Configuration:**
 - Tests run with `--runInBand --detectOpenHandles --forceExit` flags
 - Build is run automatically before tests (`pretest` script)
 - Test files are in `__tests__/**/*.test.js`
+- Global setup: `test/global-testcontainer-setup.js`
+- Global teardown: `test/global-testcontainer-teardown.js`
 
 ## Code Style & Conventions
 
@@ -87,6 +104,19 @@ docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB \
 - Async/await for async operations
 - Callback pattern for `transform` function
 - Progress bars for long-running operations (using `cli-progress`)
+
+### Documentation & Communication Style
+
+When writing documentation, commit messages, PR descriptions, or comments:
+
+- **Be neutral and concise**: Direct statements, no emotional language
+- **No emojis**: Use plain text only
+- **No anthropomorphism**: Write instructions, not agent behaviors
+  - Good: "Run tests before committing"
+  - Bad: "The agent should run tests"
+- **No exclamation marks**: Keep tone professional
+- **Use checkboxes**: `[ ]` and `[x]` instead of emoji checkmarks
+- **Factual descriptions**: Describe what happens, not how users should feel
 
 ## API Patterns
 
@@ -130,11 +160,14 @@ transform(doc) {
 
 ## Common Pitfalls
 
-1. **Memory Issues**: Don't set `bufferSize` too high or you'll run out of heap
-2. **ES Timeouts**: For large bulk requests, you may need to tune ES timeout settings
-3. **File Encoding**: Assumes UTF-8 encoding
-4. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
-5. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
+1. **Using npm instead of yarn**: This project uses `yarn` and `yarn.lock`. Using `npm install` creates unwanted `package-lock.json`
+2. **Memory Issues**: Don't set `bufferSize` too high or you'll run out of heap
+3. **ES Timeouts**: For large bulk requests, you may need to tune ES timeout settings
+4. **File Encoding**: Assumes UTF-8 encoding
+5. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
+6. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
+7. **Node.js Version**: Requires v24+ for `with` import assertion syntax
+8. **Open Handles Warning**: Pre-existing Jest warning about stream cleanup (see issue #23). Tests use `--forceExit` to handle this
 
 ## PR Guidelines
 
@@ -147,10 +180,18 @@ transform(doc) {
 
 ## Release Process
 
-1. Make your changes and commit using `cz`
+**Note:** This project uses `commit-and-tag-version`, not changesets (see issue #24 for future changeset support)
+
+1. Make your changes and commit using `cz` (Commitizen for conventional commits)
 2. Run `yarn release -- --release-as <version>` (e.g., `1.0.0-beta8`)
-3. This updates version in `package.json` and `CHANGELOG.md`
+3. This updates version in `package.json` and auto-generates `CHANGELOG.md` from commit history
 4. Push tags to trigger CI/CD
+
+**Conventional Commit Format:**
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)
+- `BREAKING CHANGE:` - Major version bump
+- `docs:`, `chore:`, `refactor:`, etc. - No version bump
 
 ## Useful Examples
 
@@ -163,10 +204,53 @@ See `__tests__/**/*.test.js` for comprehensive usage examples including:
 - Document splitting
 - Populated fields detection
 
-## Notes for AI Agents
+## Implementation Workflow
+
+### Before Starting Work
+
+**Run these checks before modifying code:**
+
+```bash
+# 1. Verify package manager (should see yarn.lock only)
+ls -la yarn.lock package-lock.json pnpm-lock.yaml 2>/dev/null
+
+# 2. Verify build works
+yarn build
+
+# 3. Check test setup
+grep -A 5 '"jest"' package.json
+
+# 4. Verify Node.js version
+node --version  # Should be v24+
+```
+
+**Document findings in your work log:**
+- Package manager: yarn
+- Build system: Rollup + Babel
+- Test runner: Jest + Testcontainers
+- Node.js: v24+
+
+### Development Guidelines
 
 - This is a **library**, not an application - focus on API design and streaming performance
 - When making changes, ensure both `dist/node-es-transformer.cjs.js` and `dist/node-es-transformer.esm.js` are properly built
 - Test with actual large files when possible, not just unit tests
 - Memory profiling is important - use `--inspect` flag if investigating memory issues
 - The package is published to npm, so breaking changes need major version bumps
+
+### After Implementation
+
+**Provide user guidance:**
+1. How to test the changes locally
+2. What changed in the workflow
+3. What to watch out for
+4. First-time setup notes (if any)
+
+**Example:**
+```
+Changes complete. To test locally:
+
+$ yarn test
+
+Note: First run downloads ES Docker image (1-2 minutes)
+```
