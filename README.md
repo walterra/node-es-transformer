@@ -134,15 +134,20 @@ yarn
 
 `yarn dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
 
-`yarn test` runs the tests. The tests expect that you have an Elasticsearch instance running without security at `http://localhost:9200`. Using docker, you can set this up with:
+`yarn test` runs the tests using [Testcontainers](https://node.testcontainers.org/) to automatically manage an Elasticsearch container. **No manual Docker setup is required** - the container starts automatically before tests and stops after completion.
 
 ```bash
-# Download the docker image
-docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
-
-# Run the container
-docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+yarn test
 ```
+
+**Requirements:**
+- Docker daemon running
+- Node.js 16+
+- At least 2GB available memory for the Elasticsearch container
+
+The first test run will download the Elasticsearch Docker image (Elasticsearch 8.17.0, one-time setup). Subsequent runs reuse the image.
+
+**Note:** If you prefer to run tests against a manually managed Elasticsearch instance, you can start one on `http://localhost:9200` and the tests will use it as a fallback.
 
 To commit, use `cz`. To prepare a release, use e.g. `yarn release -- --release-as 1.0.0-beta2`.
 
