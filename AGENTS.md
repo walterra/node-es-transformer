@@ -173,10 +173,12 @@ transform(doc) {
 
 - Run `yarn lint` and `yarn test` before committing
 - Use `cz` for commit messages (Commitizen)
-- Write changeset file directly in `.changeset/your-change.md` with concise one-liner
+- Write ONE changeset file in `.changeset/your-change.md` with concise one-liner covering all PR changes
 - Tests must pass in CI (GitHub Actions workflows in `.github/workflows/`)
 - Ensure both CommonJS and ESM builds work
 - Add tests for new features or bug fixes
+
+**Changeset Rule:** One changeset per PR that describes all changes. If you add multiple features/fixes in one PR, combine them into one changeset with the highest version bump needed.
 
 ## Release Process
 
@@ -184,10 +186,13 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 
 ### Adding a Changeset (for Coding Agents)
 
+**Important: ONE changeset per PR/branch.** Combine all changes into a single changeset file.
+
 **Coding agents should write changeset files directly** (avoid interactive commands):
 
-1. Create a new `.md` file in `.changeset/` with a descriptive kebab-case name
-2. Write a concise one-liner describing the change
+1. Create ONE `.md` file in `.changeset/` with a descriptive kebab-case name
+2. Write a concise one-liner describing all changes in the PR
+3. Use the highest version bump needed (major > minor > patch)
 
 **Format:**
 ```markdown
@@ -195,7 +200,7 @@ This project uses [Changesets](https://github.com/changesets/changesets) for ver
 "node-es-transformer": patch|minor|major
 ---
 
-Concise one-line description of the change
+Concise one-line description of the change(s)
 ```
 
 **Examples:**
@@ -224,7 +229,16 @@ Add support for gzip-compressed files
 "node-es-transformer": major
 ---
 
-Remove deprecated bufferLimit option (use bufferSize instead)
+Update to Node.js 22 and add automated publishing (breaking: requires Node 22+)
+```
+
+**Multiple changes in one PR:**
+```markdown
+---
+"node-es-transformer": minor
+---
+
+Add retry logic and improve error messages
 ```
 
 ### Adding a Changeset (for Human Developers)

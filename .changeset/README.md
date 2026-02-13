@@ -2,22 +2,28 @@
 
 This directory contains changesets for version management.
 
+## Important: One Changeset Per PR
+
+**Create ONE changeset per PR/branch** that describes all changes. Do not create multiple changesets for the same PR.
+
 ## Adding a changeset (Coding Agents)
 
-Create a `.md` file with a concise one-liner:
+Create ONE `.md` file with a concise one-liner covering all PR changes:
 
 ```markdown
 ---
 "node-es-transformer": patch|minor|major
 ---
 
-Concise one-line description of the change
+Concise one-line description of the change(s)
 ```
 
 **Examples:**
 - `.changeset/fix-memory-leak.md` - Fix memory leak in stream cleanup (patch)
 - `.changeset/add-gzip-support.md` - Add support for gzip-compressed files (minor)
-- `.changeset/remove-buffer-limit.md` - Remove deprecated bufferLimit option (major)
+- `.changeset/node-22-upgrade.md` - Update to Node.js 22 and add automated publishing (major)
+
+If your PR includes multiple changes, combine them into one changeset with the highest version bump needed.
 
 ## Adding a changeset (Human Developers)
 
