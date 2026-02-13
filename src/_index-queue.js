@@ -75,22 +75,26 @@ export default function indexQueueFactory({
       docsPerSecond = 0;
     }, 1000);
 
-    await client.helpers.bulk({
-      concurrency: parallelCalls,
-      flushBytes,
-      flushInterval: 1000,
-      refreshOnCompletion: true,
-      datasource: ndjsonStreamIterator(stream),
-      onDocument(doc) {
-        docsPerSecond++;
-        return {
-          index: { _index: targetIndexName },
-        };
-      },
-    });
-
-    clearInterval(interval);
-    queueEmitter.emit('finish');
+    try {
+      await client.helpers.bulk({
+        concurrency: parallelCalls,
+        flushBytes,
+        flushInterval: 1000,
+        refreshOnCompletion: true,
+        datasource: ndjsonStreamIterator(stream),
+        onDocument(doc) {
+          docsPerSecond++;
+          return {
+            index: { _index: targetIndexName },
+          };
+        },
+      });
+    } finally {
+      clearInterval(interval);
+      // Properly destroy the stream to prevent open handles
+      stream.destroy();
+      queueEmitter.emit('finish');
+    }
   })();
 
   return {
