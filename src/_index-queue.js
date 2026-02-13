@@ -30,43 +30,51 @@ export default function indexQueueFactory({
     let buffer = ''; // To hold the incomplete data
     let skippedHeader = false;
 
-    // Iterate over the stream using async iteration
-    for await (const chunk of readableStream) {
-      buffer += chunk.toString(); // Accumulate the chunk data in the buffer
+    try {
+      // Iterate over the stream using async iteration
+      for await (const chunk of readableStream) {
+        buffer += chunk.toString(); // Accumulate the chunk data in the buffer
 
-      // Split the buffer into lines (NDJSON items)
-      const lines = buffer.split('\n');
+        // Split the buffer into lines (NDJSON items)
+        const lines = buffer.split('\n');
 
-      // The last line might be incomplete, so hold it back in the buffer
-      buffer = lines.pop();
+        // The last line might be incomplete, so hold it back in the buffer
+        buffer = lines.pop();
 
-      // Yield each complete JSON object
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            if (!skipHeader || (skipHeader && !skippedHeader)) {
-              yield JSON.parse(line); // Parse and yield the JSON object
-              skippedHeader = true;
+        // Yield each complete JSON object
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              if (!skipHeader || (skipHeader && !skippedHeader)) {
+                yield JSON.parse(line); // Parse and yield the JSON object
+                skippedHeader = true;
+              }
+            } catch (err) {
+              // Handle JSON parse errors if necessary
+              console.error('Failed to parse JSON:', err);
             }
-          } catch (err) {
-            // Handle JSON parse errors if necessary
-            console.error('Failed to parse JSON:', err);
           }
         }
       }
-    }
 
-    // Handle any remaining data in the buffer after the stream ends
-    if (buffer.trim()) {
-      try {
-        yield JSON.parse(buffer);
-      } catch (err) {
-        console.error('Failed to parse final JSON:', err);
+      // Handle any remaining data in the buffer after the stream ends
+      if (buffer.trim()) {
+        try {
+          yield JSON.parse(buffer);
+        } catch (err) {
+          console.error('Failed to parse final JSON:', err);
+        }
+      }
+    } finally {
+      // Ensure the stream is properly cleaned up if the iterator is terminated early
+      if (!readableStream.destroyed) {
+        readableStream.destroy();
       }
     }
   }
 
   let finished = false;
+  let drainListener = null;
 
   // Async IIFE to start bulk indexing
   (async () => {
@@ -89,11 +97,30 @@ export default function indexQueueFactory({
           };
         },
       });
+    } catch (error) {
+      console.error('Error during bulk indexing:', error);
+      throw error;
     } finally {
+      // Clean up interval
       clearInterval(interval);
+
+      // Remove drain listener if it exists
+      if (drainListener) {
+        stream.removeListener('drain', drainListener);
+        drainListener = null;
+      }
+
+      // Remove all listeners from stream
+      stream.removeAllListeners();
+
       // Properly destroy the stream to prevent open handles
-      stream.destroy();
+      if (!stream.destroyed) {
+        stream.destroy();
+      }
+
+      // Emit finish and clean up queue emitter listeners
       queueEmitter.emit('finish');
+      queueEmitter.removeAllListeners();
     }
   })();
 
@@ -106,9 +133,12 @@ export default function indexQueueFactory({
       const canContinue = stream.push(`${JSON.stringify(doc)}\n`);
       if (!canContinue) {
         queueEmitter.emit('pause');
-        stream.once('drain', () => {
+
+        // Store the listener so we can clean it up later
+        drainListener = () => {
           queueEmitter.emit('resume');
-        });
+        };
+        stream.once('drain', drainListener);
       }
     },
     finish: () => {
