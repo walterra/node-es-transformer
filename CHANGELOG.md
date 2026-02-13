@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- [#36](https://github.com/walterra/node-es-transformer/pull/36) [`0865586`](https://github.com/walterra/node-es-transformer/commit/08655868bd001c01da949be2800d6c2117171286) - Fix publish workflow to build package before creating tarball
+
 ## 1.0.0
 
 ### Major Changes

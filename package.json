@@ -30,7 +30,7 @@
   "license": "Apache-2.0",
   "author": "Walter M. Rafelsberger <walter@rafelsberger.at>",
   "contributors": [],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "node": ">=22.0.0"
   },
