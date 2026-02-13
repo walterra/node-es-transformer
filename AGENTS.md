@@ -124,7 +124,7 @@ This runs dedicated tests that spin up TWO containers (ES 8.17.0 and ES 9.3.0) s
 **Fallback:** If Elasticsearch is already running on `http://localhost:9200`, tests will use it instead.
 
 **Test Configuration:**
-- Tests run with `--runInBand --detectOpenHandles --forceExit` flags
+- Tests run with `--runInBand --detectOpenHandles` flags
 - Build is run automatically before tests (`pretest` and `pretest:cross-version` scripts)
 - Standard test files: `__tests__/**/*.test.js` (excluding cross_version_reindex)
 - Cross-version test file: `__tests__/cross_version_reindex.test.js`
@@ -210,7 +210,6 @@ transform(doc) {
 5. **Line Splitting**: Uses `\n` by default; override with `splitRegex` if needed
 6. **Mapping Conflicts**: When reindexing, ensure target mappings are compatible
 7. **Node.js Version**: Requires v22+ (see `.nvmrc`)
-8. **Open Handles Warning**: Pre-existing Jest warning about stream cleanup (see issue #23). Tests use `--forceExit` to handle this
 
 ## PR Guidelines
 
