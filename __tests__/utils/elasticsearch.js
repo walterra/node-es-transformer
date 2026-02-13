@@ -29,9 +29,9 @@ function getElasticsearchUrl() {
 function getElasticsearchClient() {
   const esVersion = process.env.ES_VERSION || '9.3.0';
   const majorVersion = parseInt(esVersion.split('.')[0], 10);
-  
+
   const ClientClass = majorVersion >= 9 ? Client9 : Client8;
-  
+
   return new ClientClass({
     node: getElasticsearchUrl(),
   });

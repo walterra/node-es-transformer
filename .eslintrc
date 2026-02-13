@@ -46,9 +46,6 @@
     "import/prefer-default-export": "off",
     "no-unused-vars": "warn",
     "no-nested-ternary": "off",
-    "jsx-a11y/click-events-have-key-events": "off",
-    "jsx-a11y/no-static-element-interactions": "off",
-    "jsx-a11y/anchor-is-valid": "off",
     "no-return-assign": "warn",
     "guard-for-in": "warn",
     "no-restricted-syntax": "off",
@@ -60,7 +57,6 @@
     "no-bitwise": "off",
     "eqeqeq": "warn",
     "no-shadow": "warn",
-    "jsx-a11y/label-has-associated-control": "off",
     "no-console": "off"
   },
   "overrides": [

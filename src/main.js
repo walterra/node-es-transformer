@@ -18,7 +18,7 @@ async function detectElasticsearchVersion(config) {
     const info = await testClient.info();
     const version = info.version?.number;
     await testClient.close();
-    
+
     if (version) {
       const majorVersion = parseInt(version.split('.')[0], 10);
       return majorVersion;
@@ -30,7 +30,7 @@ async function detectElasticsearchVersion(config) {
       const info = await testClient.info();
       const version = info.version?.number;
       await testClient.close();
-      
+
       if (version) {
         const majorVersion = parseInt(version.split('.')[0], 10);
         return majorVersion;
@@ -39,7 +39,7 @@ async function detectElasticsearchVersion(config) {
       // Could not detect version
     }
   }
-  
+
   // Default to v9 if detection fails
   return 9;
 }
@@ -55,19 +55,19 @@ async function getOrCreateClient(clientOrConfig, defaultConfig, forceVersion) {
   if (clientOrConfig && typeof clientOrConfig.info === 'function') {
     return clientOrConfig;
   }
-  
+
   const config = clientOrConfig || defaultConfig;
-  
+
   // If version is forced, use the specified client
   if (forceVersion === 8) {
     return new elasticsearch8.Client(config);
   } else if (forceVersion === 9) {
     return new elasticsearch9.Client(config);
   }
-  
+
   // Auto-detect version
   const majorVersion = await detectElasticsearchVersion(config);
-  
+
   if (majorVersion >= 9) {
     return new elasticsearch9.Client(config);
   } else {
@@ -112,13 +112,13 @@ export default async function transformer({
   const sourceClient = await getOrCreateClient(
     sourceClientInput || sourceClientConfig,
     defaultClientConfig,
-    sourceClientVersion
+    sourceClientVersion,
   );
-  
+
   const targetClient = await getOrCreateClient(
     targetClientInput || targetClientConfig || sourceClientInput || sourceClientConfig,
     defaultClientConfig,
-    targetClientVersion
+    targetClientVersion,
   );
 
   const createMapping = createMappingFactory({
