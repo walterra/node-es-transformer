@@ -103,42 +103,18 @@ This ensures commit messages follow the conventional commit format.
 
 ## Release Process
 
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and releases.
+This project uses [Changesets](https://github.com/changesets/changesets) for automated version management and releases.
 
-### Adding a Changeset
+**Quick workflow:**
 
-When you make a change that should be released, create a changeset:
+1. Create changeset with your PR: `yarn changeset`
+2. Merge PR to `main`
+3. Automated release PR is created
+4. Merge release PR
+5. GitHub release is created automatically
+6. Package is published to npm automatically
 
-```bash
-yarn changeset
-```
-
-Follow the interactive prompts to:
-1. Select the type of change (patch/minor/major)
-2. Write a summary of the change
-
-The changeset will be committed along with your changes.
-
-### Creating a Release
-
-1. When changesets are pushed to `main`, a release PR is automatically created
-2. The release PR includes version bumps and updated CHANGELOG.md
-3. Review and merge the release PR
-4. This automatically:
-   - Creates a GitHub release with the version tag
-   - Publishes the package to npm
-
-### Manual Publishing
-
-For testing or manual releases:
-
-```bash
-# Test packaging locally
-yarn pack:dry-run
-
-# Build actual tarball
-yarn pack
-```
+**For complete details, troubleshooting, and manual release procedures, see [RELEASE.md](RELEASE.md).**
 
 ### Version Bump Guidelines
 

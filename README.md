@@ -279,6 +279,7 @@ See [examples/typescript-example.ts](examples/typescript-example.ts) for more ex
 - **[MIGRATION.md](MIGRATION.md)** - Upgrading from beta to v1.0.0
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute (open an issue first!)
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development setup and testing
+- **[RELEASE.md](RELEASE.md)** - Complete release process and troubleshooting
 - **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
 
 ### Error Handling
