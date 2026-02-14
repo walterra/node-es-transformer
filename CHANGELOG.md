@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+### Minor Changes
+
+- [#45](https://github.com/walterra/node-es-transformer/pull/45) [`9bb36cf`](https://github.com/walterra/node-es-transformer/commit/9bb36cfea731914b586b2c25bd466c18ea5cdcd8) - Add Parquet and Arrow IPC sourceFormat support for file and stream ingestion with tests and updated API docs.
+
+- [#48](https://github.com/walterra/node-es-transformer/pull/48) [`6ba1c50`](https://github.com/walterra/node-es-transformer/commit/6ba1c506e4a16f40d3505aeaabb741607c4885f2) - Replace console logging with structured Pino logging and add optional custom logger support.
+
 ## 1.1.0
 
 ### Minor Changes
