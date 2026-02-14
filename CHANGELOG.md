@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- [#43](https://github.com/walterra/node-es-transformer/pull/43) [`56bf4c6`](https://github.com/walterra/node-es-transformer/commit/56bf4c6cf7831e0bd8d6e2740ee04db1c16742de) - Add CSV parsing for file and stream sources with sourceFormat and csvOptions
+
+### Patch Changes
+
+- [#40](https://github.com/walterra/node-es-transformer/pull/40) [`58c3dc2`](https://github.com/walterra/node-es-transformer/commit/58c3dc26cf0727ac2bd98756be4839407eb8b245) - Fix transform null handling and queue backpressure behavior
+
 ## 1.0.2
 
 ### Patch Changes
