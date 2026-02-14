@@ -180,6 +180,8 @@ export interface TransformerOptions {
   /**
    * Infer mappings for file sources via _text_structure/find_structure
    * Ignored when mappings is explicitly provided
+   * If inference returns an ingest pipeline and pipeline is not explicitly set,
+   * the inferred pipeline is created and applied as default index pipeline.
    * @default false
    */
   inferMappings?: boolean;
