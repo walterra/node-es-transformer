@@ -126,7 +126,7 @@ export default async function transformer({
     targetClientVersion,
   );
 
-  const resolvedMappings = await inferMappingsFromSource({
+  const inferenceResult = await inferMappingsFromSource({
     targetClient,
     fileName,
     sourceFormat,
@@ -143,7 +143,8 @@ export default async function transformer({
     sourceIndexName,
     targetClient,
     targetIndexName,
-    mappings: resolvedMappings,
+    mappings: inferenceResult.mappings,
+    inferredIngestPipeline: inferenceResult.ingestPipeline,
     mappingsOverride,
     indexMappingTotalFieldsLimit,
     verbose,

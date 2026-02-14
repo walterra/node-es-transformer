@@ -16,6 +16,13 @@ function readSample(filePath, sampleBytes) {
   }
 }
 
+function emptyInferenceResult(mappings) {
+  return {
+    mappings,
+    ingestPipeline: undefined,
+  };
+}
+
 export default async function inferMappingsFromSource({
   targetClient,
   fileName,
@@ -28,7 +35,7 @@ export default async function inferMappingsFromSource({
   verbose,
 }) {
   if (!inferMappings || typeof mappings !== 'undefined' || typeof fileName === 'undefined') {
-    return mappings;
+    return emptyInferenceResult(mappings);
   }
 
   if (
@@ -36,14 +43,14 @@ export default async function inferMappingsFromSource({
     sourceFormat === 'xml' ||
     sourceFormat === 'semi_structured_text'
   ) {
-    return mappings;
+    return emptyInferenceResult(mappings);
   }
 
   const files = globSync(fileName);
 
   if (files.length === 0) {
     if (verbose) console.log(`No files matched for mapping inference: ${fileName}`);
-    return mappings;
+    return emptyInferenceResult(mappings);
   }
 
   const { sampleBytes = DEFAULT_INFER_MAPPINGS_SAMPLE_BYTES, ...requestParams } =
@@ -53,7 +60,7 @@ export default async function inferMappingsFromSource({
 
   if (!sampleText || sampleText.trim() === '') {
     if (verbose) console.log('Skipping mapping inference because the sample text is empty.');
-    return mappings;
+    return emptyInferenceResult(mappings);
   }
 
   const params = {
@@ -91,12 +98,19 @@ export default async function inferMappingsFromSource({
       console.log(`Inferred mappings via _text_structure/find_structure from ${files[0]}`);
     }
 
-    return response?.mappings || mappings;
+    if (response?.ingest_pipeline && verbose) {
+      console.log('Inferred ingest pipeline via _text_structure/find_structure');
+    }
+
+    return {
+      mappings: response?.mappings || mappings,
+      ingestPipeline: response?.ingest_pipeline,
+    };
   } catch (error) {
     if (verbose) {
       console.log('Could not infer mappings via _text_structure/find_structure:', error.message);
     }
 
-    return mappings;
+    return emptyInferenceResult(mappings);
   }
 }
