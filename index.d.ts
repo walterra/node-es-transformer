@@ -41,6 +41,20 @@ export interface CsvOptions {
 }
 
 /**
+ * Mapping inference options for _text_structure/find_structure
+ */
+export interface InferMappingsOptions {
+  sampleBytes?: number;
+  lines_to_sample?: number;
+  timeout?: string;
+  charset?: string;
+  delimiter?: string;
+  quote?: string;
+  has_header_row?: boolean;
+  [key: string]: any;
+}
+
+/**
  * Transform function that processes each document
  * @param doc - The source document
  * @param context - Optional context information
@@ -162,6 +176,18 @@ export interface TransformerOptions {
    * @default false
    */
   mappingsOverride?: boolean;
+
+  /**
+   * Infer mappings for file sources via _text_structure/find_structure
+   * Ignored when mappings is explicitly provided
+   * @default false
+   */
+  inferMappings?: boolean;
+
+  /**
+   * Options for mapping inference via _text_structure/find_structure
+   */
+  inferMappingsOptions?: InferMappingsOptions;
 
   /**
    * Field limit for target index (index.mapping.total_fields.limit setting)

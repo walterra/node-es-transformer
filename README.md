@@ -156,6 +156,23 @@ transformer({
 });
 ```
 
+### Infer mappings from CSV sample
+
+```javascript
+const transformer = require('node-es-transformer');
+
+transformer({
+  fileName: 'users.csv',
+  sourceFormat: 'csv',
+  targetIndexName: 'users-index',
+  inferMappings: true,
+  inferMappingsOptions: {
+    sampleBytes: 200000,
+    lines_to_sample: 2000,
+  },
+});
+```
+
 ### Read from another index
 
 ```javascript
@@ -288,9 +305,13 @@ Choose **one** of these sources:
 
 - **`mappings`** (object): Elasticsearch document mappings for target index. If reindexing and not provided, mappings are copied from source index.
 - **`mappingsOverride`** (boolean): When reindexing, apply `mappings` on top of source index mappings. Default: `false`.
+- **`inferMappings`** (boolean): Infer mappings for `fileName` sources via `/_text_structure/find_structure`. Ignored when `mappings` is provided. Default: `false`.
+- **`inferMappingsOptions`** (object): Options for `/_text_structure/find_structure` (for example `sampleBytes`, `lines_to_sample`, `delimiter`, `quote`, `has_header_row`, `timeout`).
 - **`deleteIndex`** (boolean): Delete target index if it exists before starting. Default: `false`.
 - **`indexMappingTotalFieldsLimit`** (number): Field limit for target index (`index.mapping.total_fields.limit` setting).
 - **`pipeline`** (string): Elasticsearch ingest pipeline name to use during indexing.
+
+When `inferMappings` is enabled, the target cluster must allow `/_text_structure/find_structure` (cluster privilege: `monitor_text_structure`).
 
 #### Performance Options
 
