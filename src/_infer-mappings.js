@@ -38,6 +38,15 @@ export default async function inferMappingsFromSource({
     return emptyInferenceResult(mappings);
   }
 
+  if (sourceFormat !== 'ndjson' && sourceFormat !== 'csv') {
+    if (verbose) {
+      console.log(
+        `Skipping mapping inference for sourceFormat "${sourceFormat}". Inference is only supported for ndjson and csv.`,
+      );
+    }
+    return emptyInferenceResult(mappings);
+  }
+
   if (
     typeof targetClient?.textStructure?.findStructure !== 'function' ||
     sourceFormat === 'xml' ||

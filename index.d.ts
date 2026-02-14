@@ -145,7 +145,7 @@ export interface TransformerOptions {
    * Source format for file/stream ingestion
    * @default 'ndjson'
    */
-  sourceFormat?: 'ndjson' | 'csv';
+  sourceFormat?: 'ndjson' | 'csv' | 'parquet' | 'arrow';
 
   /**
    * CSV parser options when sourceFormat is 'csv'
@@ -179,6 +179,7 @@ export interface TransformerOptions {
 
   /**
    * Infer mappings for file sources via _text_structure/find_structure
+   * Supported for sourceFormat 'ndjson' and 'csv' only
    * Ignored when mappings is explicitly provided
    * If inference returns an ingest pipeline and pipeline is not explicitly set,
    * the inferred pipeline is created and applied as default index pipeline.
@@ -217,6 +218,7 @@ export interface TransformerOptions {
    * Skip header line for file/stream ingestion
    * - NDJSON: skips the first non-empty line
    * - CSV: skips the first data line only when csvOptions.columns does not consume headers
+   * - Parquet/Arrow: ignored
    * @default false
    */
   skipHeader?: boolean;

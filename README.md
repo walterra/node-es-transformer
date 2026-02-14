@@ -8,7 +8,7 @@
 
 # node-es-transformer
 
-Stream-based library for ingesting and transforming large data files (CSV/JSON) into Elasticsearch indices.
+Stream-based library for ingesting and transforming large data files (NDJSON/CSV/Parquet/Arrow IPC) into Elasticsearch indices.
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ See [Usage](#usage) for more examples.
 
 ## Why Use This?
 
-If you need to ingest large CSV/JSON files (GigaBytes) into Elasticsearch without running out of memory, this is the tool for you. Other solutions often run out of JS heap, hammer ES with too many requests, time out, or try to do everything in a single bulk request.
+If you need to ingest large NDJSON/CSV/Parquet/Arrow IPC files (GigaBytes) into Elasticsearch without running out of memory, this is the tool for you. Other solutions often run out of JS heap, hammer ES with too many requests, time out, or try to do everything in a single bulk request.
 
 **When to use this:**
 - Large file ingestion (20-30 GB tested)
@@ -151,6 +151,58 @@ transformer({
       ...row,
       id: Number(row.id),
       full_name: `${row.first_name} ${row.last_name}`,
+    };
+  },
+});
+```
+
+### Read Parquet from a file
+
+```javascript
+const transformer = require('node-es-transformer');
+
+transformer({
+  fileName: 'users.parquet',
+  sourceFormat: 'parquet',
+  targetIndexName: 'users-index',
+  mappings: {
+    properties: {
+      id: { type: 'integer' },
+      first_name: { type: 'keyword' },
+      last_name: { type: 'keyword' },
+      full_name: { type: 'keyword' },
+    },
+  },
+  transform(row) {
+    return {
+      ...row,
+      id: Number(row.id),
+      full_name: `${row.first_name} ${row.last_name}`,
+    };
+  },
+});
+```
+
+### Read Arrow IPC from a file
+
+```javascript
+const transformer = require('node-es-transformer');
+
+transformer({
+  fileName: 'users.arrow',
+  sourceFormat: 'arrow',
+  targetIndexName: 'users-index',
+  mappings: {
+    properties: {
+      id: { type: 'integer' },
+      first_name: { type: 'keyword' },
+      last_name: { type: 'keyword' },
+    },
+  },
+  transform(row) {
+    return {
+      ...row,
+      id: Number(row.id),
     };
   },
 });
@@ -286,10 +338,12 @@ All options are passed to the main `transformer()` function.
 
 Choose **one** of these sources:
 
-- **`fileName`** (string): Source filename to ingest. Supports wildcards (e.g., `logs/*.json` or `data/*.csv`).
+- **`fileName`** (string): Source filename to ingest. Supports wildcards (e.g., `logs/*.json`, `data/*.csv`, `data/*.parquet`, `data/*.arrow`).
 - **`sourceIndexName`** (string): Source Elasticsearch index to reindex from.
 - **`stream`** (Readable): Node.js readable stream to ingest from.
-- **`sourceFormat`** (`'ndjson' | 'csv'`): Format for file/stream sources. Default: `'ndjson'`.
+- **`sourceFormat`** (`'ndjson' | 'csv' | 'parquet' | 'arrow'`): Format for file/stream sources. Default: `'ndjson'`.
+  - `arrow` expects Arrow IPC file/stream payloads.
+  - `parquet` stream sources are currently buffered in memory before row iteration (file sources remain streaming by row cursor).
 - **`csvOptions`** (object): CSV parser options (delimiter, quote, columns, etc.) used when `sourceFormat: 'csv'`.
 
 #### Client Configuration
@@ -305,7 +359,7 @@ Choose **one** of these sources:
 
 - **`mappings`** (object): Elasticsearch document mappings for target index. If reindexing and not provided, mappings are copied from source index.
 - **`mappingsOverride`** (boolean): When reindexing, apply `mappings` on top of source index mappings. Default: `false`.
-- **`inferMappings`** (boolean): Infer mappings for `fileName` sources via `/_text_structure/find_structure`. Ignored when `mappings` is provided. If inference returns `ingest_pipeline`, it is created as `<targetIndexName>-inferred-pipeline` and applied as the index default pipeline (unless `pipeline` is explicitly set). Default: `false`.
+- **`inferMappings`** (boolean): Infer mappings for `fileName` sources via `/_text_structure/find_structure`. Supported for `sourceFormat: 'ndjson'` and `sourceFormat: 'csv'` only. Ignored when `mappings` is provided. If inference returns `ingest_pipeline`, it is created as `<targetIndexName>-inferred-pipeline` and applied as the index default pipeline (unless `pipeline` is explicitly set). Default: `false`.
 - **`inferMappingsOptions`** (object): Options for `/_text_structure/find_structure` (for example `sampleBytes`, `lines_to_sample`, `delimiter`, `quote`, `has_header_row`, `timeout`).
 - **`deleteIndex`** (boolean): Delete target index if it exists before starting. Default: `false`.
 - **`indexMappingTotalFieldsLimit`** (number): Field limit for target index (`index.mapping.total_fields.limit` setting).
@@ -330,6 +384,7 @@ When `inferMappings` is enabled, the target cluster must allow `/_text_structure
 - **`skipHeader`** (boolean): Header skipping for file/stream sources.
   - NDJSON: skips the first non-empty line
   - CSV: skips the first data line only when `csvOptions.columns` does not consume headers
+  - Parquet/Arrow: ignored
   - Default: `false`
   - Applies only to `fileName`/`stream` sources
 - **`verbose`** (boolean): Enable logging and progress bars. Default: `true`.
