@@ -47,10 +47,10 @@ export default function fileReaderFactory(
   fileName,
   transform,
   splitRegex,
-  verbose,
   skipHeader = false,
   sourceFormat = 'ndjson',
   csvOptions = {},
+  logger,
 ) {
   function addParsedDoc(parsed, file) {
     const context = { fileName: file };
@@ -94,7 +94,7 @@ export default function fileReaderFactory(
         await waitIfPaused();
       }
 
-      if (verbose) console.log('Read entire file: ', file);
+      logger.info({ file }, 'Read entire file');
     } finally {
       cleanup();
       await reader.close();
@@ -124,7 +124,7 @@ export default function fileReaderFactory(
         }
       }
 
-      if (verbose) console.log('Read entire file: ', file);
+      logger.info({ file }, 'Read entire file');
     } finally {
       cleanup();
     }
@@ -156,14 +156,14 @@ export default function fileReaderFactory(
       s.on('end', () => {
         finished = true;
         cleanup();
-        if (verbose) console.log('Read entire file: ', file);
+        logger.info({ file }, 'Read entire file');
         resolve();
       });
 
       s.on('error', err => {
         finished = true;
         cleanup();
-        console.log(errorMessage, err);
+        logger.error({ err, file }, errorMessage);
         reject(err);
       });
     });
@@ -194,15 +194,15 @@ export default function fileReaderFactory(
 
                   const parsed = JSON.parse(line);
                   addParsedDoc(parsed, file);
-                } catch (e) {
-                  console.log('error', e);
+                } catch (err) {
+                  logger.error({ err, file }, 'Failed to process NDJSON line');
                 }
               })
               .on('error', err => {
-                console.log('Error while reading file.', err);
+                logger.error({ err, file }, 'Error while reading file');
               }),
           ),
-      'Error while reading file.',
+      'Error while reading file',
     );
   }
 
@@ -220,15 +220,15 @@ export default function fileReaderFactory(
               .mapSync(record => {
                 try {
                   addParsedDoc(record, file);
-                } catch (e) {
-                  console.log('error', e);
+                } catch (err) {
+                  logger.error({ err, file }, 'Failed to process CSV record');
                 }
               })
               .on('error', err => {
-                console.log('Error while reading CSV file.', err);
+                logger.error({ err, file }, 'Error while reading CSV file');
               }),
           ),
-      'Error while reading CSV file.',
+      'Error while reading CSV file',
     );
   }
 
@@ -267,8 +267,8 @@ export default function fileReaderFactory(
         // eslint-disable-next-line no-await-in-loop
         await processFile(file);
       }
-    } catch (error) {
-      console.log('Error while processing files:', error);
+    } catch (err) {
+      logger.error({ err, files }, 'Error while processing files');
     } finally {
       indexer.finish();
     }
@@ -278,8 +278,8 @@ export default function fileReaderFactory(
     try {
       const files = globSync(fileName);
       startIndex(files);
-    } catch (error) {
-      console.log('Error matching files:', error);
+    } catch (err) {
+      logger.error({ err, fileName }, 'Error matching files');
       indexer.finish();
     }
   };

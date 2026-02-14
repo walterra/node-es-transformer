@@ -1,42 +1,45 @@
 /**
  * Cross-Version Reindex Example
- * 
+ *
  * Demonstrates reindexing from Elasticsearch 8.x to 9.x.
  * The library automatically detects the ES version and uses the appropriate client.
  */
 
 const transformer = require('node-es-transformer');
+const logger = require('./_logger');
 
 // Example 1: Auto-detection (recommended)
 transformer({
   sourceClientConfig: {
     node: 'https://es8-cluster.example.com:9200',
     auth: {
-      apiKey: process.env.ES8_API_KEY
-    }
+      apiKey: process.env.ES8_API_KEY,
+    },
   },
   targetClientConfig: {
     node: 'https://es9-cluster.example.com:9200',
     auth: {
-      apiKey: process.env.ES9_API_KEY
-    }
+      apiKey: process.env.ES9_API_KEY,
+    },
   },
   sourceIndexName: 'my-index-v1',
   targetIndexName: 'my-index-v1',
-  
+
   // Optional: Transform data during migration
   transform(doc) {
     // Clean up deprecated fields, add new fields, etc.
     return {
       ...doc,
-      migrated_at: new Date().toISOString()
+      migrated_at: new Date().toISOString(),
     };
-  }
-}).then(() => {
-  console.log('Cross-version reindex complete!');
-}).catch(err => {
-  console.error('Error during cross-version reindex:', err);
-});
+  },
+})
+  .then(() => {
+    logger.info('Cross-version reindex complete');
+  })
+  .catch(err => {
+    logger.error({ err }, 'Error during cross-version reindex');
+  });
 
 // Example 2: Using pre-instantiated clients (advanced)
 /*

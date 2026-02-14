@@ -387,7 +387,8 @@ When `inferMappings` is enabled, the target cluster must allow `/_text_structure
   - Parquet/Arrow: ignored
   - Default: `false`
   - Applies only to `fileName`/`stream` sources
-- **`verbose`** (boolean): Enable logging and progress bars. Default: `true`.
+- **`verbose`** (boolean): Enable verbose logging and progress bars when using the built-in logger. Default: `true`.
+- **`logger`** (object): Optional custom Pino-compatible logger. If omitted, the library creates an internal Pino logger (`name: node-es-transformer`) and uses `LOG_LEVEL` (if set) or `info`/`error` based on `verbose`.
 
 ### Return Value
 
@@ -400,16 +401,19 @@ The `transformer()` function returns a Promise that resolves to an object with:
   - `'error'`: Error occurred
 
 ```javascript
+const pino = require('pino');
+const logger = pino({ name: 'my-app', level: process.env.LOG_LEVEL || 'info' });
+
 const result = await transformer({
   /* options */
 });
 
 result.events.on('complete', () => {
-  console.log('Ingestion complete!');
+  logger.info('Ingestion complete');
 });
 
 result.events.on('error', err => {
-  console.error('Error:', err);
+  logger.error({ err }, 'Ingestion failed');
 });
 ```
 
@@ -447,20 +451,23 @@ See [examples/typescript-example.ts](examples/typescript-example.ts) for more ex
 Always handle errors when using the library:
 
 ```javascript
+const pino = require('pino');
+const logger = pino({ name: 'my-app', level: process.env.LOG_LEVEL || 'info' });
+
 transformer({
   /* options */
 })
-  .then(() => console.log('Success'))
-  .catch(err => console.error('Error:', err));
+  .then(() => logger.info('Success'))
+  .catch(err => logger.error({ err }, 'Transformer failed'));
 
 // Or with async/await
 try {
   await transformer({
     /* options */
   });
-  console.log('Success');
+  logger.info('Success');
 } catch (err) {
-  console.error('Error:', err);
+  logger.error({ err }, 'Transformer failed');
 }
 ```
 

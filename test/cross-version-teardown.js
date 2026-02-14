@@ -5,11 +5,13 @@
 const fs = require('fs');
 const path = require('path');
 
+const logger = require('./_logger');
+
 const CONTAINER_8_URL_FILE = path.join(process.cwd(), '.testcontainer-es8-url');
 const CONTAINER_9_URL_FILE = path.join(process.cwd(), '.testcontainer-es9-url');
 
 module.exports = async function crossVersionTeardown() {
-  console.log('🧹 Cleaning up Elasticsearch testcontainers...');
+  logger.info('Cleaning up Elasticsearch testcontainers');
 
   const container8 = global.__TESTCONTAINER_ES8__;
   const container9 = global.__TESTCONTAINER_ES9__;
@@ -17,22 +19,22 @@ module.exports = async function crossVersionTeardown() {
   // Stop ES 8.x container
   if (container8) {
     try {
-      console.log('Stopping Elasticsearch 8.x container...');
+      logger.info('Stopping Elasticsearch 8.x container');
       await container8.stop();
-      console.log('✅ Elasticsearch 8.x container stopped');
-    } catch (error) {
-      console.error('Failed to stop Elasticsearch 8.x container:', error);
+      logger.info('Elasticsearch 8.x container stopped');
+    } catch (err) {
+      logger.error({ err }, 'Failed to stop Elasticsearch 8.x container');
     }
   }
 
   // Stop ES 9.x container
   if (container9) {
     try {
-      console.log('Stopping Elasticsearch 9.x container...');
+      logger.info('Stopping Elasticsearch 9.x container');
       await container9.stop();
-      console.log('✅ Elasticsearch 9.x container stopped');
-    } catch (error) {
-      console.error('Failed to stop Elasticsearch 9.x container:', error);
+      logger.info('Elasticsearch 9.x container stopped');
+    } catch (err) {
+      logger.error({ err }, 'Failed to stop Elasticsearch 9.x container');
     }
   }
 
@@ -44,9 +46,9 @@ module.exports = async function crossVersionTeardown() {
     if (fs.existsSync(CONTAINER_9_URL_FILE)) {
       fs.unlinkSync(CONTAINER_9_URL_FILE);
     }
-  } catch (error) {
-    console.error('Failed to clean up config files:', error);
+  } catch (err) {
+    logger.error({ err }, 'Failed to clean up config files');
   }
 
-  console.log('✅ Cleanup complete');
+  logger.info('Cross-version cleanup complete');
 };

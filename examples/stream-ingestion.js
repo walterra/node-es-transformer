@@ -1,48 +1,49 @@
 /**
  * Stream-Based Ingestion Example
- * 
+ *
  * Demonstrates how to ingest data from a Node.js stream.
  * Useful for processing data from APIs, databases, or custom sources.
  */
 
 const transformer = require('node-es-transformer');
 const { Readable } = require('stream');
+const logger = require('./_logger');
 
 // Example 1: Ingest from a simple readable stream
 function createSampleStream() {
   const data = [
     { id: 1, name: 'Alice', email: 'alice@example.com' },
     { id: 2, name: 'Bob', email: 'bob@example.com' },
-    { id: 3, name: 'Charlie', email: 'charlie@example.com' }
+    { id: 3, name: 'Charlie', email: 'charlie@example.com' },
   ];
-  
-  return Readable.from(
-    data.map(item => JSON.stringify(item) + '\n')
-  );
+
+  return Readable.from(data.map(item => `${JSON.stringify(item)}\n`));
 }
 
 transformer({
   stream: createSampleStream(),
   targetIndexName: 'users',
-  
+
   mappings: {
     properties: {
-      'id': {
-        type: 'integer'
+      id: {
+        type: 'integer',
       },
-      'name': {
-        type: 'keyword'
+      name: {
+        type: 'keyword',
       },
-      'email': {
-        type: 'keyword'
-      }
-    }
-  }
-}).then(() => {
-  console.log('Stream ingestion complete!');
-}).catch(err => {
-  console.error('Error during stream ingestion:', err);
-});
+      email: {
+        type: 'keyword',
+      },
+    },
+  },
+})
+  .then(() => {
+    logger.info('Stream ingestion complete');
+  })
+  .catch(err => {
+    logger.error({ err }, 'Error during stream ingestion');
+  });
 
 // Example 2: Ingest from HTTP API response stream
 /*
@@ -77,7 +78,7 @@ const { Readable } = require('stream');
 async function queryDatabase() {
   // Pseudo-code for database streaming
   const cursor = await db.collection('items').find().stream();
-  
+
   // Convert to newline-delimited JSON stream
   const jsonStream = new Readable({
     read() {
@@ -89,7 +90,7 @@ async function queryDatabase() {
       });
     }
   });
-  
+
   return transformer({
     stream: jsonStream,
     targetIndexName: 'db-items',

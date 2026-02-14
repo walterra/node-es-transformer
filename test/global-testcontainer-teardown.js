@@ -5,6 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const logger = require('./_logger');
+
 const CONTAINER_URL_FILE = path.join(process.cwd(), '.testcontainer-url');
 
 /**
@@ -14,12 +16,12 @@ module.exports = async function globalTeardown() {
   const container = global.__TESTCONTAINER__;
 
   if (container) {
-    console.log('🛑 Stopping Elasticsearch testcontainer...');
+    logger.info('Stopping Elasticsearch testcontainer');
     try {
       await container.stop();
-      console.log('✅ Elasticsearch testcontainer stopped');
-    } catch (error) {
-      console.error('⚠️  Failed to stop Elasticsearch testcontainer:', error);
+      logger.info('Elasticsearch testcontainer stopped');
+    } catch (err) {
+      logger.warn({ err }, 'Failed to stop Elasticsearch testcontainer');
       // Don't throw - cleanup should be best-effort
     }
   }
@@ -28,9 +30,9 @@ module.exports = async function globalTeardown() {
   try {
     if (fs.existsSync(CONTAINER_URL_FILE)) {
       fs.unlinkSync(CONTAINER_URL_FILE);
-      console.log('✅ Cleaned up connection info file');
+      logger.info({ path: CONTAINER_URL_FILE }, 'Cleaned up connection info file');
     }
-  } catch (error) {
-    console.warn('⚠️  Failed to clean up connection info file:', error);
+  } catch (err) {
+    logger.warn({ err, path: CONTAINER_URL_FILE }, 'Failed to clean up connection info file');
   }
 };

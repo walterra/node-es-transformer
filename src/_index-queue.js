@@ -11,6 +11,7 @@ export default function indexQueueFactory({
   targetClient: client,
   targetIndexName,
   bufferSize = DEFAULT_BUFFER_SIZE,
+  logger,
 }) {
   const queueEmitter = new EventEmitter();
   let docsPerSecond = 0;
@@ -46,8 +47,7 @@ export default function indexQueueFactory({
           try {
             yield JSON.parse(line); // Parse and yield the JSON object
           } catch (err) {
-            // Handle JSON parse errors if necessary
-            console.error('Failed to parse JSON:', err);
+            logger.error({ err }, 'Failed to parse JSON from NDJSON stream');
           }
         }
       }
@@ -57,7 +57,7 @@ export default function indexQueueFactory({
         try {
           yield JSON.parse(buffer);
         } catch (err) {
-          console.error('Failed to parse final JSON:', err);
+          logger.error({ err }, 'Failed to parse final JSON from NDJSON stream');
         }
       }
     } finally {
@@ -85,16 +85,17 @@ export default function indexQueueFactory({
         flushInterval: 1000,
         refreshOnCompletion: true,
         datasource: ndjsonStreamIterator(stream),
-        onDocument(doc) {
+        onDocument() {
           docsPerSecond++;
           return {
             index: { _index: targetIndexName },
           };
         },
       });
-    } catch (error) {
-      console.error('Error during bulk indexing:', error);
-      throw error;
+    } catch (err) {
+      logger.error({ err, targetIndexName }, 'Error during bulk indexing');
+      queueEmitter.emit('error', err);
+      throw err;
     } finally {
       // Clean up interval
       clearInterval(interval);
