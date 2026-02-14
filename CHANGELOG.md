@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+### Patch Changes
+
+- [#38](https://github.com/walterra/node-es-transformer/pull/38) [`9927e4e`](https://github.com/walterra/node-es-transformer/commit/9927e4eb6975e663c00cc87e57e204970829558b) - Use GitHub App token for release PRs and restore automatic GitHub and npm publishing after merge
+
 ## 1.0.1
 
 ### Patch Changes
