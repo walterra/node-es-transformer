@@ -87,6 +87,8 @@ export default async function transformer({
   searchSize = DEFAULT_SEARCH_SIZE,
   stream,
   fileName,
+  sourceFormat = 'ndjson',
+  csvOptions = {},
   splitRegex = /\n/,
   sourceIndexName,
   targetIndexName,
@@ -137,9 +139,14 @@ export default async function transformer({
     targetClient,
     targetIndexName,
     bufferSize,
-    skipHeader,
     verbose,
   });
+
+  function validateSourceFormat() {
+    if (sourceFormat !== 'ndjson' && sourceFormat !== 'csv') {
+      throw Error(`Unsupported sourceFormat: ${sourceFormat}. Use "ndjson" or "csv".`);
+    }
+  }
 
   function getReader() {
     if (typeof fileName !== 'undefined' && typeof sourceIndexName !== 'undefined') {
@@ -155,7 +162,17 @@ export default async function transformer({
     }
 
     if (typeof fileName !== 'undefined') {
-      return fileReaderFactory(indexer, fileName, transform, splitRegex, verbose);
+      validateSourceFormat();
+      return fileReaderFactory(
+        indexer,
+        fileName,
+        transform,
+        splitRegex,
+        verbose,
+        skipHeader,
+        sourceFormat,
+        csvOptions,
+      );
     }
 
     if (typeof sourceIndexName !== 'undefined') {
@@ -171,7 +188,17 @@ export default async function transformer({
     }
 
     if (typeof stream !== 'undefined') {
-      return streamReaderFactory(indexer, stream, transform, splitRegex, verbose);
+      validateSourceFormat();
+      return streamReaderFactory(
+        indexer,
+        stream,
+        transform,
+        splitRegex,
+        verbose,
+        skipHeader,
+        sourceFormat,
+        csvOptions,
+      );
     }
 
     return null;

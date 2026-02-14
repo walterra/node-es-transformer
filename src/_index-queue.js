@@ -11,7 +11,6 @@ export default function indexQueueFactory({
   targetClient: client,
   targetIndexName,
   bufferSize = DEFAULT_BUFFER_SIZE,
-  skipHeader = false,
 }) {
   const queueEmitter = new EventEmitter();
   let docsPerSecond = 0;
@@ -26,7 +25,6 @@ export default function indexQueueFactory({
 
   async function* ndjsonStreamIterator(readableStream) {
     let buffer = ''; // To hold the incomplete data
-    let skippedHeader = false;
 
     try {
       // Iterate over the stream using async iteration
@@ -42,11 +40,6 @@ export default function indexQueueFactory({
         // Yield each complete JSON object
         for (const line of lines) {
           if (!line.trim()) {
-            continue;
-          }
-
-          if (skipHeader && !skippedHeader) {
-            skippedHeader = true;
             continue;
           }
 

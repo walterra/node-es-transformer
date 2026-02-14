@@ -26,6 +26,21 @@ export interface TransformContext {
 }
 
 /**
+ * CSV parser options (subset of csv-parse options plus passthrough support)
+ */
+export interface CsvOptions {
+  delimiter?: string;
+  quote?: string;
+  escape?: string;
+  columns?: boolean | string[] | ((header: string[]) => string[]);
+  bom?: boolean;
+  trim?: boolean;
+  skip_empty_lines?: boolean;
+  from_line?: number;
+  [key: string]: any;
+}
+
+/**
  * Transform function that processes each document
  * @param doc - The source document
  * @param context - Optional context information
@@ -113,7 +128,19 @@ export interface TransformerOptions {
   stream?: Readable;
 
   /**
+   * Source format for file/stream ingestion
+   * @default 'ndjson'
+   */
+  sourceFormat?: 'ndjson' | 'csv';
+
+  /**
+   * CSV parser options when sourceFormat is 'csv'
+   */
+  csvOptions?: CsvOptions;
+
+  /**
    * Regular expression to split lines in file/stream
+   * Used only when sourceFormat is 'ndjson'
    * @default /\n/
    */
   splitRegex?: RegExp;
@@ -159,7 +186,9 @@ export interface TransformerOptions {
   query?: QueryDslQueryContainer;
 
   /**
-   * Skip the first line of the source file (e.g., CSV header)
+   * Skip header line for file/stream ingestion
+   * - NDJSON: skips the first non-empty line
+   * - CSV: skips the first data line only when csvOptions.columns does not consume headers
    * @default false
    */
   skipHeader?: boolean;
