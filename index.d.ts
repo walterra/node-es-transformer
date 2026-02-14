@@ -26,6 +26,35 @@ export interface TransformContext {
 }
 
 /**
+ * CSV parser options (subset of csv-parse options plus passthrough support)
+ */
+export interface CsvOptions {
+  delimiter?: string;
+  quote?: string;
+  escape?: string;
+  columns?: boolean | string[] | ((header: string[]) => string[]);
+  bom?: boolean;
+  trim?: boolean;
+  skip_empty_lines?: boolean;
+  from_line?: number;
+  [key: string]: any;
+}
+
+/**
+ * Mapping inference options for _text_structure/find_structure
+ */
+export interface InferMappingsOptions {
+  sampleBytes?: number;
+  lines_to_sample?: number;
+  timeout?: string;
+  charset?: string;
+  delimiter?: string;
+  quote?: string;
+  has_header_row?: boolean;
+  [key: string]: any;
+}
+
+/**
  * Transform function that processes each document
  * @param doc - The source document
  * @param context - Optional context information
@@ -113,7 +142,19 @@ export interface TransformerOptions {
   stream?: Readable;
 
   /**
+   * Source format for file/stream ingestion
+   * @default 'ndjson'
+   */
+  sourceFormat?: 'ndjson' | 'csv';
+
+  /**
+   * CSV parser options when sourceFormat is 'csv'
+   */
+  csvOptions?: CsvOptions;
+
+  /**
    * Regular expression to split lines in file/stream
+   * Used only when sourceFormat is 'ndjson'
    * @default /\n/
    */
   splitRegex?: RegExp;
@@ -135,6 +176,20 @@ export interface TransformerOptions {
    * @default false
    */
   mappingsOverride?: boolean;
+
+  /**
+   * Infer mappings for file sources via _text_structure/find_structure
+   * Ignored when mappings is explicitly provided
+   * If inference returns an ingest pipeline and pipeline is not explicitly set,
+   * the inferred pipeline is created and applied as default index pipeline.
+   * @default false
+   */
+  inferMappings?: boolean;
+
+  /**
+   * Options for mapping inference via _text_structure/find_structure
+   */
+  inferMappingsOptions?: InferMappingsOptions;
 
   /**
    * Field limit for target index (index.mapping.total_fields.limit setting)
@@ -159,7 +214,9 @@ export interface TransformerOptions {
   query?: QueryDslQueryContainer;
 
   /**
-   * Skip the first line of the source file (e.g., CSV header)
+   * Skip header line for file/stream ingestion
+   * - NDJSON: skips the first non-empty line
+   * - CSV: skips the first data line only when csvOptions.columns does not consume headers
    * @default false
    */
   skipHeader?: boolean;

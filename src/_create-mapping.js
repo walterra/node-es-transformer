@@ -4,6 +4,7 @@ export default function createMappingFactory({
   targetClient,
   targetIndexName,
   mappings,
+  inferredIngestPipeline,
   mappingsOverride,
   indexMappingTotalFieldsLimit,
   verbose,
@@ -12,6 +13,7 @@ export default function createMappingFactory({
 }) {
   return async () => {
     let targetMappings = mappingsOverride ? undefined : mappings;
+    let defaultPipeline = pipeline;
 
     if (sourceClient && sourceIndexName && typeof targetMappings === 'undefined') {
       try {
@@ -51,27 +53,45 @@ export default function createMappingFactory({
         }
 
         if (indexExists === false || deleteIndex === true) {
-          const resp = await targetClient.indices.create({
-            index: targetIndexName,
-            mappings: targetMappings,
-            ...(pipeline !== undefined
+          if (
+            typeof defaultPipeline === 'undefined' &&
+            typeof inferredIngestPipeline === 'object' &&
+            inferredIngestPipeline !== null &&
+            typeof targetClient?.ingest?.putPipeline === 'function'
+          ) {
+            const inferredPipelineName = `${targetIndexName}-inferred-pipeline`;
+
+            try {
+              await targetClient.ingest.putPipeline({
+                id: inferredPipelineName,
+                ...inferredIngestPipeline,
+              });
+              defaultPipeline = inferredPipelineName;
+              if (verbose) console.log(`Created inferred ingest pipeline ${inferredPipelineName}`);
+            } catch (err) {
+              console.log('Error creating inferred ingest pipeline', err);
+            }
+          }
+
+          const settings = {
+            ...(defaultPipeline !== undefined
               ? {
-                  settings: {
-                    index: {
-                      default_pipeline: pipeline,
-                    },
-                  },
+                  'index.default_pipeline': defaultPipeline,
                 }
               : {}),
             ...(indexMappingTotalFieldsLimit !== undefined
               ? {
-                  settings: {
-                    'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
-                    'index.number_of_shards': 1,
-                    'index.number_of_replicas': 0,
-                  },
+                  'index.mapping.total_fields.limit': indexMappingTotalFieldsLimit,
+                  'index.number_of_shards': 1,
+                  'index.number_of_replicas': 0,
                 }
               : {}),
+          };
+
+          const resp = await targetClient.indices.create({
+            index: targetIndexName,
+            mappings: targetMappings,
+            ...(Object.keys(settings).length > 0 ? { settings } : {}),
           });
           if (verbose) console.log('Created target mapping', resp);
         }

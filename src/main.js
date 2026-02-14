@@ -6,6 +6,7 @@ import createMappingFactory from './_create-mapping';
 import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
 import indexReaderFactory from './_index-reader';
+import inferMappingsFromSource from './_infer-mappings';
 import streamReaderFactory from './_stream-reader';
 
 /**
@@ -87,11 +88,15 @@ export default async function transformer({
   searchSize = DEFAULT_SEARCH_SIZE,
   stream,
   fileName,
+  sourceFormat = 'ndjson',
+  csvOptions = {},
   splitRegex = /\n/,
   sourceIndexName,
   targetIndexName,
   mappings,
   mappingsOverride = false,
+  inferMappings = false,
+  inferMappingsOptions = {},
   indexMappingTotalFieldsLimit,
   pipeline,
   populatedFields = false,
@@ -121,12 +126,25 @@ export default async function transformer({
     targetClientVersion,
   );
 
+  const inferenceResult = await inferMappingsFromSource({
+    targetClient,
+    fileName,
+    sourceFormat,
+    csvOptions,
+    skipHeader,
+    mappings,
+    inferMappings,
+    inferMappingsOptions,
+    verbose,
+  });
+
   const createMapping = createMappingFactory({
     sourceClient,
     sourceIndexName,
     targetClient,
     targetIndexName,
-    mappings,
+    mappings: inferenceResult.mappings,
+    inferredIngestPipeline: inferenceResult.ingestPipeline,
     mappingsOverride,
     indexMappingTotalFieldsLimit,
     verbose,
@@ -137,9 +155,14 @@ export default async function transformer({
     targetClient,
     targetIndexName,
     bufferSize,
-    skipHeader,
     verbose,
   });
+
+  function validateSourceFormat() {
+    if (sourceFormat !== 'ndjson' && sourceFormat !== 'csv') {
+      throw Error(`Unsupported sourceFormat: ${sourceFormat}. Use "ndjson" or "csv".`);
+    }
+  }
 
   function getReader() {
     if (typeof fileName !== 'undefined' && typeof sourceIndexName !== 'undefined') {
@@ -155,7 +178,17 @@ export default async function transformer({
     }
 
     if (typeof fileName !== 'undefined') {
-      return fileReaderFactory(indexer, fileName, transform, splitRegex, verbose);
+      validateSourceFormat();
+      return fileReaderFactory(
+        indexer,
+        fileName,
+        transform,
+        splitRegex,
+        verbose,
+        skipHeader,
+        sourceFormat,
+        csvOptions,
+      );
     }
 
     if (typeof sourceIndexName !== 'undefined') {
@@ -171,7 +204,17 @@ export default async function transformer({
     }
 
     if (typeof stream !== 'undefined') {
-      return streamReaderFactory(indexer, stream, transform, splitRegex, verbose);
+      validateSourceFormat();
+      return streamReaderFactory(
+        indexer,
+        stream,
+        transform,
+        splitRegex,
+        verbose,
+        skipHeader,
+        sourceFormat,
+        csvOptions,
+      );
     }
 
     return null;

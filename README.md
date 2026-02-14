@@ -96,7 +96,7 @@ yarn add node-es-transformer
 
 ## Usage
 
-### Read from a file
+### Read NDJSON from a file
 
 ```javascript
 const transformer = require('node-es-transformer');
@@ -126,6 +126,50 @@ transformer({
       full_name: `${line.first_name} ${line.last_name}`
     }
   }
+});
+```
+
+### Read CSV from a file
+
+```javascript
+const transformer = require('node-es-transformer');
+
+transformer({
+  fileName: 'users.csv',
+  sourceFormat: 'csv',
+  targetIndexName: 'users-index',
+  mappings: {
+    properties: {
+      id: { type: 'integer' },
+      first_name: { type: 'keyword' },
+      last_name: { type: 'keyword' },
+      full_name: { type: 'keyword' },
+    },
+  },
+  transform(row) {
+    return {
+      ...row,
+      id: Number(row.id),
+      full_name: `${row.first_name} ${row.last_name}`,
+    };
+  },
+});
+```
+
+### Infer mappings from CSV sample
+
+```javascript
+const transformer = require('node-es-transformer');
+
+transformer({
+  fileName: 'users.csv',
+  sourceFormat: 'csv',
+  targetIndexName: 'users-index',
+  inferMappings: true,
+  inferMappingsOptions: {
+    sampleBytes: 200000,
+    lines_to_sample: 2000,
+  },
 });
 ```
 
@@ -242,9 +286,11 @@ All options are passed to the main `transformer()` function.
 
 Choose **one** of these sources:
 
-- **`fileName`** (string): Source filename to ingest. Supports wildcards (e.g., `logs/*.json`).
+- **`fileName`** (string): Source filename to ingest. Supports wildcards (e.g., `logs/*.json` or `data/*.csv`).
 - **`sourceIndexName`** (string): Source Elasticsearch index to reindex from.
 - **`stream`** (Readable): Node.js readable stream to ingest from.
+- **`sourceFormat`** (`'ndjson' | 'csv'`): Format for file/stream sources. Default: `'ndjson'`.
+- **`csvOptions`** (object): CSV parser options (delimiter, quote, columns, etc.) used when `sourceFormat: 'csv'`.
 
 #### Client Configuration
 
@@ -259,9 +305,13 @@ Choose **one** of these sources:
 
 - **`mappings`** (object): Elasticsearch document mappings for target index. If reindexing and not provided, mappings are copied from source index.
 - **`mappingsOverride`** (boolean): When reindexing, apply `mappings` on top of source index mappings. Default: `false`.
+- **`inferMappings`** (boolean): Infer mappings for `fileName` sources via `/_text_structure/find_structure`. Ignored when `mappings` is provided. If inference returns `ingest_pipeline`, it is created as `<targetIndexName>-inferred-pipeline` and applied as the index default pipeline (unless `pipeline` is explicitly set). Default: `false`.
+- **`inferMappingsOptions`** (object): Options for `/_text_structure/find_structure` (for example `sampleBytes`, `lines_to_sample`, `delimiter`, `quote`, `has_header_row`, `timeout`).
 - **`deleteIndex`** (boolean): Delete target index if it exists before starting. Default: `false`.
 - **`indexMappingTotalFieldsLimit`** (number): Field limit for target index (`index.mapping.total_fields.limit` setting).
 - **`pipeline`** (string): Elasticsearch ingest pipeline name to use during indexing.
+
+When `inferMappings` is enabled, the target cluster must allow `/_text_structure/find_structure` (cluster privilege: `monitor_text_structure`). If inferred ingest pipelines are used, the target cluster must also allow creating ingest pipelines (`_ingest/pipeline`).
 
 #### Performance Options
 
@@ -276,8 +326,12 @@ Choose **one** of these sources:
   - Return array of documents to split one source into multiple targets
   - Return `null`/`undefined` to skip document
 - **`query`** (object): Elasticsearch [DSL query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) to filter source documents.
-- **`splitRegex`** (RegExp): Line split regex for file/stream sources. Default: `/\n/`.
-- **`skipHeader`** (boolean): Skip first line of source file (e.g., CSV header). Default: `false`.
+- **`splitRegex`** (RegExp): Line split regex for file/stream sources when `sourceFormat` is `'ndjson'`. Default: `/\n/`.
+- **`skipHeader`** (boolean): Header skipping for file/stream sources.
+  - NDJSON: skips the first non-empty line
+  - CSV: skips the first data line only when `csvOptions.columns` does not consume headers
+  - Default: `false`
+  - Applies only to `fileName`/`stream` sources
 - **`verbose`** (boolean): Enable logging and progress bars. Default: `true`.
 
 ### Return Value
