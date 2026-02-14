@@ -6,6 +6,8 @@ const { ElasticsearchContainer } = require('@testcontainers/elasticsearch');
 const fs = require('fs');
 const path = require('path');
 
+const logger = require('./_logger');
+
 let container8 = null;
 let container9 = null;
 
@@ -24,16 +26,19 @@ async function waitForElasticsearchReady(url, version, maxRetries = 30, delayMs 
       if (response.ok) {
         const data = await response.json();
         if (data.version && data.version.number) {
-          console.log(`✅ Elasticsearch ${version} is ready (version ${data.version.number}, attempt ${attempt})`);
+          logger.info(
+            { requestedVersion: version, version: data.version.number, attempt },
+            'Elasticsearch is ready for cross-version test setup',
+          );
           return;
         }
       }
-    } catch (error) {
+    } catch (err) {
       // Connection failed, retry
     }
 
     if (attempt < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
   }
 
@@ -44,11 +49,11 @@ async function waitForElasticsearchReady(url, version, maxRetries = 30, delayMs 
  * Start both ES 8.x and 9.x containers for cross-version testing
  */
 module.exports = async function crossVersionSetup() {
-  console.log('🐳 Starting dual Elasticsearch testcontainers for cross-version testing...');
+  logger.info('Starting dual Elasticsearch testcontainers for cross-version testing');
 
   try {
     // Start ES 8.x container
-    console.log('🐳 Starting Elasticsearch 8.17.0 container...');
+    logger.info('Starting Elasticsearch 8.17.0 container');
     container8 = await new ElasticsearchContainer('docker.elastic.co/elasticsearch/elasticsearch:8.17.0')
       .withEnvironment({
         'discovery.type': 'single-node',
@@ -61,7 +66,7 @@ module.exports = async function crossVersionSetup() {
     const port8 = container8.getMappedPort(9200);
     const url8 = `http://${host8}:${port8}`;
 
-    console.log(`[Testcontainer] Waiting for Elasticsearch 8.x to be ready at ${url8}...`);
+    logger.info({ url8 }, 'Waiting for Elasticsearch 8.x to be ready');
     await waitForElasticsearchReady(url8, '8.x');
 
     // Write ES 8.x connection details
@@ -74,11 +79,13 @@ module.exports = async function crossVersionSetup() {
     };
     fs.writeFileSync(CONTAINER_8_URL_FILE, JSON.stringify(connectionInfo8, null, 2));
 
-    console.log(`✅ Elasticsearch 8.x container started: ${url8}`);
-    console.log(`   Container ID: ${container8.getId()}`);
+    logger.info(
+      { url8, containerId: container8.getId(), configPath: CONTAINER_8_URL_FILE },
+      'Elasticsearch 8.x container started',
+    );
 
     // Start ES 9.x container
-    console.log('🐳 Starting Elasticsearch 9.3.0 container...');
+    logger.info('Starting Elasticsearch 9.3.0 container');
     container9 = await new ElasticsearchContainer('docker.elastic.co/elasticsearch/elasticsearch:9.3.0')
       .withEnvironment({
         'discovery.type': 'single-node',
@@ -91,7 +98,7 @@ module.exports = async function crossVersionSetup() {
     const port9 = container9.getMappedPort(9200);
     const url9 = `http://${host9}:${port9}`;
 
-    console.log(`[Testcontainer] Waiting for Elasticsearch 9.x to be ready at ${url9}...`);
+    logger.info({ url9 }, 'Waiting for Elasticsearch 9.x to be ready');
     await waitForElasticsearchReady(url9, '9.x');
 
     // Write ES 9.x connection details
@@ -104,33 +111,35 @@ module.exports = async function crossVersionSetup() {
     };
     fs.writeFileSync(CONTAINER_9_URL_FILE, JSON.stringify(connectionInfo9, null, 2));
 
-    console.log(`✅ Elasticsearch 9.x container started: ${url9}`);
-    console.log(`   Container ID: ${container9.getId()}`);
+    logger.info(
+      { url9, containerId: container9.getId(), configPath: CONTAINER_9_URL_FILE },
+      'Elasticsearch 9.x container started',
+    );
 
     // Store container references globally for teardown
     global.__TESTCONTAINER_ES8__ = container8;
     global.__TESTCONTAINER_ES9__ = container9;
 
-    console.log('✅ Both Elasticsearch containers ready for cross-version testing!');
-  } catch (error) {
-    console.error('❌ Failed to start Elasticsearch testcontainers:', error);
-    
+    logger.info('Both Elasticsearch containers ready for cross-version testing');
+  } catch (err) {
+    logger.error({ err }, 'Failed to start Elasticsearch testcontainers');
+
     // Cleanup on failure
     if (container8) {
       try {
         await container8.stop();
-      } catch (e) {
-        console.error('Failed to stop ES 8.x container:', e);
+      } catch (cleanupErr) {
+        logger.error({ err: cleanupErr }, 'Failed to stop Elasticsearch 8.x container during cleanup');
       }
     }
     if (container9) {
       try {
         await container9.stop();
-      } catch (e) {
-        console.error('Failed to stop ES 9.x container:', e);
+      } catch (cleanupErr) {
+        logger.error({ err: cleanupErr }, 'Failed to stop Elasticsearch 9.x container during cleanup');
       }
     }
-    
-    throw error;
+
+    throw err;
   }
 };

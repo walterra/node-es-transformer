@@ -7,9 +7,9 @@ export default function createMappingFactory({
   inferredIngestPipeline,
   mappingsOverride,
   indexMappingTotalFieldsLimit,
-  verbose,
   deleteIndex,
   pipeline,
+  logger,
 }) {
   return async () => {
     let targetMappings = mappingsOverride ? undefined : mappings;
@@ -29,7 +29,7 @@ export default function createMappingFactory({
           }
         }
       } catch (err) {
-        console.log('Error reading source mapping', err);
+        logger.error({ err, sourceIndexName }, 'Error reading source mapping');
         return;
       }
     }
@@ -67,9 +67,12 @@ export default function createMappingFactory({
                 ...inferredIngestPipeline,
               });
               defaultPipeline = inferredPipelineName;
-              if (verbose) console.log(`Created inferred ingest pipeline ${inferredPipelineName}`);
+              logger.info({ inferredPipelineName }, 'Created inferred ingest pipeline');
             } catch (err) {
-              console.log('Error creating inferred ingest pipeline', err);
+              logger.error(
+                { err, inferredPipelineName },
+                'Error creating inferred ingest pipeline',
+              );
             }
           }
 
@@ -88,15 +91,15 @@ export default function createMappingFactory({
               : {}),
           };
 
-          const resp = await targetClient.indices.create({
+          const response = await targetClient.indices.create({
             index: targetIndexName,
             mappings: targetMappings,
             ...(Object.keys(settings).length > 0 ? { settings } : {}),
           });
-          if (verbose) console.log('Created target mapping', resp);
+          logger.info({ targetIndexName, response }, 'Created target mapping');
         }
       } catch (err) {
-        console.log('Error creating target mapping', err);
+        logger.error({ err, targetIndexName }, 'Error creating target mapping');
       }
     }
   };

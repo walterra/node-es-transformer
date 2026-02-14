@@ -32,18 +32,20 @@ export default async function inferMappingsFromSource({
   mappings,
   inferMappings,
   inferMappingsOptions,
-  verbose,
+  logger,
 }) {
   if (!inferMappings || typeof mappings !== 'undefined' || typeof fileName === 'undefined') {
     return emptyInferenceResult(mappings);
   }
 
   if (sourceFormat !== 'ndjson' && sourceFormat !== 'csv') {
-    if (verbose) {
-      console.log(
-        `Skipping mapping inference for sourceFormat "${sourceFormat}". Inference is only supported for ndjson and csv.`,
-      );
-    }
+    logger.info(
+      {
+        sourceFormat,
+      },
+      'Skipping mapping inference. Inference is only supported for ndjson and csv.',
+    );
+
     return emptyInferenceResult(mappings);
   }
 
@@ -58,7 +60,7 @@ export default async function inferMappingsFromSource({
   const files = globSync(fileName);
 
   if (files.length === 0) {
-    if (verbose) console.log(`No files matched for mapping inference: ${fileName}`);
+    logger.info({ fileName }, 'No files matched for mapping inference');
     return emptyInferenceResult(mappings);
   }
 
@@ -68,7 +70,7 @@ export default async function inferMappingsFromSource({
   const sampleText = readSample(files[0], sampleBytes);
 
   if (!sampleText || sampleText.trim() === '') {
-    if (verbose) console.log('Skipping mapping inference because the sample text is empty.');
+    logger.info('Skipping mapping inference because the sample text is empty');
     return emptyInferenceResult(mappings);
   }
 
@@ -103,22 +105,20 @@ export default async function inferMappingsFromSource({
   try {
     const response = await targetClient.textStructure.findStructure(params);
 
-    if (response?.mappings && verbose) {
-      console.log(`Inferred mappings via _text_structure/find_structure from ${files[0]}`);
+    if (response?.mappings) {
+      logger.info({ file: files[0] }, 'Inferred mappings via _text_structure/find_structure');
     }
 
-    if (response?.ingest_pipeline && verbose) {
-      console.log('Inferred ingest pipeline via _text_structure/find_structure');
+    if (response?.ingest_pipeline) {
+      logger.info('Inferred ingest pipeline via _text_structure/find_structure');
     }
 
     return {
       mappings: response?.mappings || mappings,
       ingestPipeline: response?.ingest_pipeline,
     };
-  } catch (error) {
-    if (verbose) {
-      console.log('Could not infer mappings via _text_structure/find_structure:', error.message);
-    }
+  } catch (err) {
+    logger.warn({ err }, 'Could not infer mappings via _text_structure/find_structure');
 
     return emptyInferenceResult(mappings);
   }

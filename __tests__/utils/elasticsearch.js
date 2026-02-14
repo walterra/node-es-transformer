@@ -2,6 +2,12 @@ const { Client: Client9 } = require('es9');
 const { Client: Client8 } = require('es8');
 const fs = require('fs');
 const path = require('path');
+const pino = require('pino');
+
+const logger = pino({
+  name: 'node-es-transformer-test',
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 /**
  * Get Elasticsearch URL from testcontainer config file or fallback to localhost
@@ -14,8 +20,8 @@ function getElasticsearchUrl() {
     try {
       const config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
       return config.url;
-    } catch (error) {
-      console.warn('Failed to read testcontainer config, falling back to localhost:', error);
+    } catch (err) {
+      logger.warn({ err }, 'Failed to read testcontainer config, falling back to localhost');
     }
   }
 

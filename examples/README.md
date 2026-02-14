@@ -103,9 +103,12 @@ transformer({
 Wrap transformer calls with try/catch or use .catch():
 
 ```javascript
+const pino = require('pino');
+const logger = pino({ name: 'my-app', level: process.env.LOG_LEVEL || 'info' });
+
 transformer({ /* options */ })
-  .then(() => console.log('Success!'))
-  .catch(err => console.error('Error:', err));
+  .then(() => logger.info('Success'))
+  .catch(err => logger.error({ err }, 'Transformer failed'));
 ```
 
 ### Progress Monitoring

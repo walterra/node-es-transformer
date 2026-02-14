@@ -203,8 +203,8 @@ npm init -y
 # Install latest version
 npm install node-es-transformer
 
-# Verify version
-node -e "console.log(require('node-es-transformer'))"
+# Verify package can be required
+node -e "require('node-es-transformer')"
 
 # Check TypeScript definitions exist
 ls node_modules/node-es-transformer/index.d.ts

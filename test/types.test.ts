@@ -101,11 +101,11 @@ async function testReturnType() {
   
   // Should have events property
   result.events.on('complete', () => {
-    console.log('Done');
+    // no-op for type validation
   });
-  
-  result.events.on('error', (err: Error) => {
-    console.error(err);
+
+  result.events.on('error', (_err: Error) => {
+    // no-op for type validation
   });
 }
 

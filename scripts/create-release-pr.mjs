@@ -12,6 +12,8 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
+import logger from './_logger.mjs';
+
 const ROOT_CHANGELOG = 'CHANGELOG.md';
 const CHANGESETS_DIR = '.changeset';
 const BASE_BRANCH = 'main';
@@ -42,7 +44,7 @@ function execInherit(cmd) {
 function hasPendingChangesets() {
   if (!existsSync(CHANGESETS_DIR)) return false;
   const files = readdirSync(CHANGESETS_DIR);
-  return files.some((f) => f.endsWith('.md') && f !== 'README.md');
+  return files.some(f => f.endsWith('.md') && f !== 'README.md');
 }
 
 /**
@@ -52,7 +54,7 @@ function hasPendingChangesets() {
 function getChangesetCount() {
   if (!existsSync(CHANGESETS_DIR)) return 0;
   const files = readdirSync(CHANGESETS_DIR);
-  return files.filter((f) => f.endsWith('.md') && f !== 'README.md').length;
+  return files.filter(f => f.endsWith('.md') && f !== 'README.md').length;
 }
 
 /**
@@ -75,7 +77,7 @@ function extractChangelog(version) {
   const changelog = readFileSync(ROOT_CHANGELOG, 'utf-8');
   const lines = changelog.split('\n');
   const versionHeader = `## ${version}`;
-  const startIdx = lines.findIndex((line) => line.startsWith(versionHeader));
+  const startIdx = lines.findIndex(line => line.startsWith(versionHeader));
 
   if (startIdx === -1) return null;
 
@@ -144,19 +146,19 @@ function createOrUpdatePr(title, body) {
   );
 
   if (existingPr) {
-    console.log(`Updating existing PR #${existingPr}...`);
+    logger.info({ existingPr }, 'Updating existing release PR');
     execInherit(
       `gh pr edit ${existingPr} --repo ${repo} --title "${title}" --body-file "${bodyFile}"`,
     );
     return parseInt(existingPr, 10);
   }
 
-  console.log('Creating new PR...');
+  logger.info('Creating release PR');
   const prUrl = exec(
     `gh pr create --repo ${repo} --head ${RELEASE_BRANCH} --base ${BASE_BRANCH} --title "${title}" --body-file "${bodyFile}"`,
   );
   const prNumber = prUrl.split('/').pop();
-  console.log(`Created PR #${prNumber}: ${prUrl}`);
+  logger.info({ prNumber, prUrl }, 'Created release PR');
   return parseInt(prNumber, 10);
 }
 
@@ -168,7 +170,7 @@ function setupGitUser() {
 
 /** Prepare or reset release branch */
 function prepareReleaseBranch() {
-  console.log(`Preparing branch: ${RELEASE_BRANCH}`);
+  logger.info({ releaseBranch: RELEASE_BRANCH }, 'Preparing release branch');
   try {
     exec(`git fetch origin ${RELEASE_BRANCH}:${RELEASE_BRANCH} 2>/dev/null || true`);
     exec(`git checkout ${RELEASE_BRANCH} 2>/dev/null || git checkout -b ${RELEASE_BRANCH}`);
@@ -183,34 +185,36 @@ function prepareReleaseBranch() {
 function commitAndPush() {
   const status = exec('git status --porcelain');
   if (!status) {
-    console.log('No changes to commit.');
+    logger.info('No changes to commit');
     return false;
   }
-  console.log('\nCommitting changes...');
+  logger.info('Committing release changes');
   execInherit('git add .');
   exec('git commit -m "chore: version packages"');
-  console.log(`\nPushing to ${RELEASE_BRANCH}...`);
+  logger.info({ releaseBranch: RELEASE_BRANCH }, 'Pushing release branch');
   execInherit(`git push origin ${RELEASE_BRANCH} --force`);
   return true;
 }
 
 /** Main entry point */
 async function main() {
-  console.log('=== Release PR Creation ===\n');
+  logger.info('Release PR creation started');
+
   if (!hasPendingChangesets()) {
-    console.log('No pending changesets found. Nothing to do.');
+    logger.info('No pending changesets found. Nothing to do.');
     return;
   }
-  console.log(`Found ${getChangesetCount()} pending changeset(s)\n`);
+
+  logger.info({ changesetCount: getChangesetCount() }, 'Pending changesets found');
 
   setupGitUser();
   prepareReleaseBranch();
 
-  console.log('\nRunning changeset version...');
+  logger.info('Running changeset version');
   execInherit('yarn changeset version');
 
   const version = getVersion();
-  console.log(`\nVersion: ${version}`);
+  logger.info({ version }, 'Computed release version');
 
   if (!commitAndPush()) return;
 
@@ -218,11 +222,10 @@ async function main() {
     `release v${version}`,
     generatePrBody(version, extractChangelog(version)),
   );
-  console.log(`\nPR #${prNumber} ready for review`);
-  console.log('\n=== Done ===');
+  logger.info({ prNumber }, 'Release PR ready for review');
 }
 
-main().catch((err) => {
-  console.error('Error:', err.message);
+main().catch(err => {
+  logger.error({ err }, 'Release PR script failed');
   process.exit(1);
 });

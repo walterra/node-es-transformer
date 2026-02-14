@@ -55,10 +55,10 @@ export default function streamReaderFactory(
   stream,
   transform,
   splitRegex,
-  verbose,
   skipHeader = false,
   sourceFormat = 'ndjson',
   csvOptions = {},
+  logger,
 ) {
   function addParsedDoc(parsed) {
     const doc = typeof transform === 'function' ? transform(parsed) : parsed;
@@ -103,7 +103,7 @@ export default function streamReaderFactory(
         await waitIfPaused();
       }
 
-      if (verbose) console.log('Read entire stream.');
+      logger.info('Read entire stream');
     } finally {
       cleanup();
       await reader.close();
@@ -133,7 +133,7 @@ export default function streamReaderFactory(
         }
       }
 
-      if (verbose) console.log('Read entire stream.');
+      logger.info('Read entire stream');
     } finally {
       cleanup();
     }
@@ -165,14 +165,14 @@ export default function streamReaderFactory(
       s.on('end', () => {
         finished = true;
         cleanup();
-        if (verbose) console.log('Read entire stream.');
+        logger.info('Read entire stream');
         resolve();
       });
 
       s.on('error', err => {
         finished = true;
         cleanup();
-        console.log(errorMessage, err);
+        logger.error({ err }, errorMessage);
         reject(err);
       });
     });
@@ -186,15 +186,15 @@ export default function streamReaderFactory(
             .mapSync(record => {
               try {
                 addParsedDoc(record);
-              } catch (e) {
-                console.log('error', e);
+              } catch (err) {
+                logger.error({ err }, 'Failed to process CSV stream record');
               }
             })
             .on('error', err => {
-              console.log('Error while reading CSV stream.', err);
+              logger.error({ err }, 'Error while reading CSV stream');
             }),
         ),
-      'Error while reading CSV stream.',
+      'Error while reading CSV stream',
     );
   }
 
@@ -219,15 +219,15 @@ export default function streamReaderFactory(
 
                 const parsed = JSON.parse(line);
                 addParsedDoc(parsed);
-              } catch (e) {
-                console.log('error', e);
+              } catch (err) {
+                logger.error({ err }, 'Failed to process NDJSON stream line');
               }
             })
             .on('error', err => {
-              console.log('Error while reading stream.', err);
+              logger.error({ err }, 'Error while reading stream');
             }),
         ),
-      'Error while reading stream.',
+      'Error while reading stream',
     );
   }
 
@@ -244,8 +244,8 @@ export default function streamReaderFactory(
       } else {
         throw Error(`Unsupported sourceFormat: ${sourceFormat}`);
       }
-    } catch (error) {
-      console.log('Error while reading stream.', error);
+    } catch (err) {
+      logger.error({ err }, 'Error while reading stream');
     } finally {
       indexer.finish();
     }

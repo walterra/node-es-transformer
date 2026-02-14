@@ -6,6 +6,8 @@ const { ElasticsearchContainer } = require('@testcontainers/elasticsearch');
 const fs = require('fs');
 const path = require('path');
 
+const logger = require('./_logger');
+
 let container = null;
 
 // File to share container URL between global setup and test workers
@@ -22,16 +24,19 @@ async function waitForElasticsearchReady(url, maxRetries = 30, delayMs = 500) {
       if (response.ok) {
         const data = await response.json();
         if (data.version && data.version.number) {
-          console.log(`✅ Elasticsearch is ready (version ${data.version.number}, attempt ${attempt})`);
+          logger.info(
+            { version: data.version.number, attempt },
+            'Elasticsearch is ready for testcontainers setup',
+          );
           return;
         }
       }
-    } catch (error) {
+    } catch (err) {
       // Connection failed, retry
     }
 
     if (attempt < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
   }
 
@@ -44,7 +49,7 @@ async function waitForElasticsearchReady(url, maxRetries = 30, delayMs = 500) {
 module.exports = async function globalSetup() {
   // Guard against multiple calls
   if (container) {
-    console.log('🐳 Elasticsearch testcontainer already running, reusing existing container');
+    logger.info('Elasticsearch testcontainer already running, reusing existing container');
     return;
   }
 
@@ -54,7 +59,7 @@ module.exports = async function globalSetup() {
     const esVersion = process.env.ES_VERSION || '9.3.0';
     const esImage = `docker.elastic.co/elasticsearch/elasticsearch:${esVersion}`;
 
-    console.log(`🐳 Starting Elasticsearch testcontainer (version: ${esVersion})...`);
+    logger.info({ esVersion }, 'Starting Elasticsearch testcontainer');
 
     // Start Elasticsearch container
     container = await new ElasticsearchContainer(esImage)
@@ -70,9 +75,8 @@ module.exports = async function globalSetup() {
     const url = `http://${host}:${port}`;
 
     // Wait for Elasticsearch to be fully ready
-    console.log(`[Testcontainer] Waiting for Elasticsearch to be ready at ${url}...`);
+    logger.info({ url }, 'Waiting for Elasticsearch to be ready');
     await waitForElasticsearchReady(url);
-    console.log(`[Testcontainer] Elasticsearch is ready!`);
 
     // Write connection details to file for test workers to read
     const connectionInfo = {
@@ -87,15 +91,19 @@ module.exports = async function globalSetup() {
     // Set environment variable for transformer to use
     process.env.ELASTICSEARCH_URL = url;
 
-    console.log(`✅ Elasticsearch testcontainer started: ${url}`);
-    console.log(`   Container ID: ${container.getId()}`);
-    console.log(`   Connection info written to: ${CONTAINER_URL_FILE}`);
-    console.log(`   ELASTICSEARCH_URL environment variable set`);
+    logger.info(
+      {
+        url,
+        containerId: container.getId(),
+        connectionInfoFile: CONTAINER_URL_FILE,
+      },
+      'Elasticsearch testcontainer started',
+    );
 
     // Store container reference globally for teardown
     global.__TESTCONTAINER__ = container;
-  } catch (error) {
-    console.error('❌ Failed to start Elasticsearch testcontainer:', error);
-    throw error;
+  } catch (err) {
+    logger.error({ err }, 'Failed to start Elasticsearch testcontainer');
+    throw err;
   }
 };

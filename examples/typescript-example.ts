@@ -5,7 +5,13 @@
  * This file is for reference only and is not meant to be executed directly.
  */
 
+import pino from 'pino';
 import transformer, { TransformerOptions, TransformFunction } from 'node-es-transformer';
+
+const logger = pino({
+  name: 'node-es-transformer-example',
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 // Example 1: Basic usage with type checking
 const options: TransformerOptions = {
@@ -29,7 +35,7 @@ const options: TransformerOptions = {
 transformer(options).then(result => {
   // Events are typed
   result.events.on('complete', () => {
-    console.log('Ingestion complete!');
+    logger.info('Ingestion complete');
   });
 });
 

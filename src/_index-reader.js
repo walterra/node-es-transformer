@@ -13,6 +13,7 @@ export default function indexReaderFactory(
   query,
   searchSize = DEFAULT_SEARCH_SIZE,
   populatedFields = false,
+  logger,
 ) {
   return async function indexReader() {
     let docsNum = 0;
@@ -35,8 +36,8 @@ export default function indexReaderFactory(
         );
 
         return Object.keys(response.fields);
-      } catch (e) {
-        console.log('error', e);
+      } catch (err) {
+        logger.error({ err, sourceIndexName }, 'Failed to fetch populated fields');
       }
     }
 
@@ -84,8 +85,8 @@ export default function indexReaderFactory(
         }
 
         indexer.add(doc);
-      } catch (e) {
-        console.log('error', e);
+      } catch (err) {
+        logger.error({ err }, 'Failed to process source index document');
       }
     }
 
