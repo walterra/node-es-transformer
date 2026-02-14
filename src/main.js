@@ -159,8 +159,15 @@ export default async function transformer({
   });
 
   function validateSourceFormat() {
-    if (sourceFormat !== 'ndjson' && sourceFormat !== 'csv') {
-      throw Error(`Unsupported sourceFormat: ${sourceFormat}. Use "ndjson" or "csv".`);
+    if (
+      sourceFormat !== 'ndjson' &&
+      sourceFormat !== 'csv' &&
+      sourceFormat !== 'parquet' &&
+      sourceFormat !== 'arrow'
+    ) {
+      throw Error(
+        `Unsupported sourceFormat: ${sourceFormat}. Use "ndjson", "csv", "parquet", or "arrow".`,
+      );
     }
   }
 

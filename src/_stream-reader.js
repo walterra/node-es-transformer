@@ -1,8 +1,54 @@
+import parquet from '@dsnp/parquetjs';
+import * as arrow from 'apache-arrow';
 import { parse } from 'csv-parse';
 import es from 'event-stream';
 import split from 'split2';
 
 import getCsvParserOptions from './_csv-parser-options';
+
+function createPauseWaiter(queueEmitter) {
+  let paused = false;
+  let waiters = [];
+
+  const onPause = () => {
+    paused = true;
+  };
+
+  const onResume = () => {
+    paused = false;
+    waiters.forEach(resolve => resolve());
+    waiters = [];
+  };
+
+  queueEmitter.on('pause', onPause);
+  queueEmitter.on('resume', onResume);
+
+  return {
+    async waitIfPaused() {
+      if (!paused) return;
+
+      await new Promise(resolve => {
+        waiters.push(resolve);
+      });
+    },
+    cleanup() {
+      queueEmitter.removeListener('pause', onPause);
+      queueEmitter.removeListener('resume', onResume);
+      waiters.forEach(resolve => resolve());
+      waiters = [];
+    },
+  };
+}
+
+async function readStreamToBuffer(stream) {
+  const chunks = [];
+
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  return Buffer.concat(chunks);
+}
 
 export default function streamReaderFactory(
   indexer,
@@ -14,12 +60,11 @@ export default function streamReaderFactory(
   sourceFormat = 'ndjson',
   csvOptions = {},
 ) {
-  function addParsedDoc(parsed, streamRef) {
+  function addParsedDoc(parsed) {
     const doc = typeof transform === 'function' ? transform(parsed) : parsed;
 
     // if doc is null/undefined we'll skip indexing it
     if (doc === null || typeof doc === 'undefined') {
-      streamRef.resume();
       return;
     }
 
@@ -36,68 +81,174 @@ export default function streamReaderFactory(
     indexer.add(doc);
   }
 
-  function startIndex() {
-    let finished = false;
+  async function processParquetStream() {
+    const { waitIfPaused, cleanup } = createPauseWaiter(indexer.queueEmitter);
 
-    const s =
-      sourceFormat === 'csv'
-        ? stream.pipe(parse(getCsvParserOptions(csvOptions, skipHeader))).pipe(
-            es
-              .mapSync(record => {
-                try {
-                  addParsedDoc(record, s);
-                } catch (e) {
-                  console.log('error', e);
-                }
-              })
-              .on('error', err => {
-                console.log('Error while reading CSV stream.', err);
-              }),
-          )
-        : (() => {
-            let skippedHeader = false;
+    const parquetBuffer = await readStreamToBuffer(stream);
+    const reader = await parquet.ParquetReader.openBuffer(parquetBuffer);
 
-            return stream.pipe(split(splitRegex)).pipe(
-              es
-                .mapSync(line => {
-                  try {
-                    // skip empty lines
-                    if (line === '') {
-                      return;
-                    }
+    try {
+      const cursor = reader.getCursor();
 
-                    if (skipHeader && !skippedHeader) {
-                      skippedHeader = true;
-                      return;
-                    }
+      while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const row = await cursor.next();
 
-                    const parsed = JSON.parse(line);
-                    addParsedDoc(parsed, s);
-                  } catch (e) {
-                    console.log('error', e);
-                  }
-                })
-                .on('error', err => {
-                  console.log('Error while reading stream.', err);
-                }),
-            );
-          })();
+        if (row === null || typeof row === 'undefined') {
+          break;
+        }
 
-    s.on('end', () => {
+        addParsedDoc(row);
+        // eslint-disable-next-line no-await-in-loop
+        await waitIfPaused();
+      }
+
       if (verbose) console.log('Read entire stream.');
+    } finally {
+      cleanup();
+      await reader.close();
+    }
+  }
+
+  async function processArrowStream() {
+    const { waitIfPaused, cleanup } = createPauseWaiter(indexer.queueEmitter);
+
+    try {
+      const reader = await arrow.RecordBatchReader.from(stream);
+
+      for await (const recordBatch of reader) {
+        const { fields } = recordBatch.schema;
+
+        for (let rowIndex = 0; rowIndex < recordBatch.numRows; rowIndex++) {
+          const row = {};
+
+          fields.forEach(field => {
+            const vector = recordBatch.getChild(field.name);
+            row[field.name] = vector ? vector.get(rowIndex) : undefined;
+          });
+
+          addParsedDoc(row);
+          // eslint-disable-next-line no-await-in-loop
+          await waitIfPaused();
+        }
+      }
+
+      if (verbose) console.log('Read entire stream.');
+    } finally {
+      cleanup();
+    }
+  }
+
+  function processPipeline(buildPipeline, errorMessage) {
+    return new Promise((resolve, reject) => {
+      let finished = false;
+      const s = buildPipeline();
+
+      const onPause = () => {
+        if (finished) return;
+        s.pause();
+      };
+
+      const onResume = () => {
+        if (finished) return;
+        s.resume();
+      };
+
+      function cleanup() {
+        indexer.queueEmitter.removeListener('pause', onPause);
+        indexer.queueEmitter.removeListener('resume', onResume);
+      }
+
+      indexer.queueEmitter.on('pause', onPause);
+      indexer.queueEmitter.on('resume', onResume);
+
+      s.on('end', () => {
+        finished = true;
+        cleanup();
+        if (verbose) console.log('Read entire stream.');
+        resolve();
+      });
+
+      s.on('error', err => {
+        finished = true;
+        cleanup();
+        console.log(errorMessage, err);
+        reject(err);
+      });
+    });
+  }
+
+  function processCsvStream() {
+    return processPipeline(
+      () =>
+        stream.pipe(parse(getCsvParserOptions(csvOptions, skipHeader))).pipe(
+          es
+            .mapSync(record => {
+              try {
+                addParsedDoc(record);
+              } catch (e) {
+                console.log('error', e);
+              }
+            })
+            .on('error', err => {
+              console.log('Error while reading CSV stream.', err);
+            }),
+        ),
+      'Error while reading CSV stream.',
+    );
+  }
+
+  function processNdjsonStream() {
+    let skippedHeader = false;
+
+    return processPipeline(
+      () =>
+        stream.pipe(split(splitRegex)).pipe(
+          es
+            .mapSync(line => {
+              try {
+                // skip empty lines
+                if (line === '') {
+                  return;
+                }
+
+                if (skipHeader && !skippedHeader) {
+                  skippedHeader = true;
+                  return;
+                }
+
+                const parsed = JSON.parse(line);
+                addParsedDoc(parsed);
+              } catch (e) {
+                console.log('error', e);
+              }
+            })
+            .on('error', err => {
+              console.log('Error while reading stream.', err);
+            }),
+        ),
+      'Error while reading stream.',
+    );
+  }
+
+  async function startIndex() {
+    try {
+      if (sourceFormat === 'csv') {
+        await processCsvStream();
+      } else if (sourceFormat === 'ndjson') {
+        await processNdjsonStream();
+      } else if (sourceFormat === 'parquet') {
+        await processParquetStream();
+      } else if (sourceFormat === 'arrow') {
+        await processArrowStream();
+      } else {
+        throw Error(`Unsupported sourceFormat: ${sourceFormat}`);
+      }
+    } catch (error) {
+      console.log('Error while reading stream.', error);
+    } finally {
       indexer.finish();
-      finished = true;
-    });
-
-    indexer.queueEmitter.on('pause', () => {
-      if (finished) return;
-      s.pause();
-    });
-
-    indexer.queueEmitter.on('resume', () => {
-      if (finished) return;
-      s.resume();
-    });
+    }
   }
 
   return () => {
