@@ -66,6 +66,19 @@ export type TransformFunction = (
 ) => any | any[] | null | undefined;
 
 /**
+ * Optional logger interface (Pino-compatible)
+ */
+export interface TransformerLogger {
+  trace?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  debug?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  info?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  warn?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  error?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  fatal?: (obj: unknown, msg?: string, ...args: any[]) => void;
+  child?: (bindings: Record<string, unknown>) => TransformerLogger;
+}
+
+/**
  * Configuration options for node-es-transformer
  */
 export interface TransformerOptions {
@@ -229,10 +242,17 @@ export interface TransformerOptions {
   transform?: TransformFunction;
 
   /**
-   * Enable verbose logging and progress bars
+   * Enable verbose logging and progress bars when using the default logger.
+   * If LOG_LEVEL is set, that level takes precedence.
    * @default true
    */
   verbose?: boolean;
+
+  /**
+   * Optional custom logger (Pino-compatible). If not provided, an internal
+   * Pino logger is created.
+   */
+  logger?: TransformerLogger;
 }
 
 /**

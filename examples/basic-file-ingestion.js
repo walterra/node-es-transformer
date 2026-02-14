@@ -1,11 +1,12 @@
 /**
  * Basic File Ingestion Example
- * 
+ *
  * Demonstrates how to ingest a JSON or CSV file into Elasticsearch
  * with custom field mappings.
  */
 
 const transformer = require('node-es-transformer');
+const logger = require('./_logger');
 
 // Example 1: Ingest JSON file
 transformer({
@@ -14,24 +15,26 @@ transformer({
   mappings: {
     properties: {
       '@timestamp': {
-        type: 'date'
+        type: 'date',
       },
-      'user_name': {
-        type: 'keyword'
+      user_name: {
+        type: 'keyword',
       },
-      'message': {
-        type: 'text'
+      message: {
+        type: 'text',
       },
-      'count': {
-        type: 'integer'
-      }
-    }
-  }
-}).then(() => {
-  console.log('Ingestion complete!');
-}).catch(err => {
-  console.error('Error during ingestion:', err);
-});
+      count: {
+        type: 'integer',
+      },
+    },
+  },
+})
+  .then(() => {
+    logger.info('Ingestion complete');
+  })
+  .catch(err => {
+    logger.error({ err }, 'Error during ingestion');
+  });
 
 // Example 2: Ingest with custom Elasticsearch connection
 /*

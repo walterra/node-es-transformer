@@ -11,6 +11,12 @@ const transformer = require('../dist/node-es-transformer.cjs');
 const { Client: Client8 } = require('es8');
 const { Client: Client9 } = require('es9');
 const { readFileSync } = require('fs');
+const pino = require('pino');
+
+const logger = pino({
+  name: 'node-es-transformer-test',
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 const testIndexPrefix = 'test-cross-version-';
 
@@ -34,8 +40,8 @@ describe('Cross-version reindexing (ES 8.x to 9.x)', () => {
     client8 = new Client8({ node: url8 });
     client9 = new Client9({ node: url9 });
 
-    console.log(`Testing with ES 8.x at ${url8}`);
-    console.log(`Testing with ES 9.x at ${url9}`);
+    logger.info({ url8 }, 'Testing with ES 8.x');
+    logger.info({ url9 }, 'Testing with ES 9.x');
   });
 
   afterAll(async () => {

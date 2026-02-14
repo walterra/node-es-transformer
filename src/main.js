@@ -7,6 +7,7 @@ import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
 import indexReaderFactory from './_index-reader';
 import inferMappingsFromSource from './_infer-mappings';
+import createLogger, { createChildLogger } from './_logger';
 import streamReaderFactory from './_stream-reader';
 
 /**
@@ -104,10 +105,13 @@ export default async function transformer({
   skipHeader = false,
   transform,
   verbose = true,
+  logger: loggerInput,
 }) {
   if (typeof targetIndexName === 'undefined') {
     throw Error('targetIndexName must be specified.');
   }
+
+  const logger = createLogger({ logger: loggerInput, verbose });
 
   const defaultClientConfig = {
     node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200',
@@ -135,7 +139,7 @@ export default async function transformer({
     mappings,
     inferMappings,
     inferMappingsOptions,
-    verbose,
+    logger: createChildLogger(logger, { component: 'mapping-inference' }),
   });
 
   const createMapping = createMappingFactory({
@@ -147,15 +151,15 @@ export default async function transformer({
     inferredIngestPipeline: inferenceResult.ingestPipeline,
     mappingsOverride,
     indexMappingTotalFieldsLimit,
-    verbose,
     deleteIndex,
     pipeline,
+    logger: createChildLogger(logger, { component: 'create-mapping' }),
   });
   const indexer = indexQueueFactory({
     targetClient,
     targetIndexName,
     bufferSize,
-    verbose,
+    logger: createChildLogger(logger, { component: 'index-queue' }),
   });
 
   function validateSourceFormat() {
@@ -191,10 +195,10 @@ export default async function transformer({
         fileName,
         transform,
         splitRegex,
-        verbose,
         skipHeader,
         sourceFormat,
         csvOptions,
+        createChildLogger(logger, { component: 'file-reader' }),
       );
     }
 
@@ -207,6 +211,7 @@ export default async function transformer({
         query,
         searchSize,
         populatedFields,
+        createChildLogger(logger, { component: 'index-reader' }),
       );
     }
 
@@ -217,10 +222,10 @@ export default async function transformer({
         stream,
         transform,
         splitRegex,
-        verbose,
         skipHeader,
         sourceFormat,
         csvOptions,
+        createChildLogger(logger, { component: 'stream-reader' }),
       );
     }
 
@@ -228,6 +233,10 @@ export default async function transformer({
   }
 
   const reader = getReader();
+
+  if (typeof reader !== 'function') {
+    throw Error('One of fileName, sourceIndexName, or stream must be specified.');
+  }
 
   try {
     const indexExists = await targetClient.indices.exists({ index: targetIndexName });
@@ -242,8 +251,8 @@ export default async function transformer({
     } else {
       reader();
     }
-  } catch (error) {
-    console.error('Error checking index existence:', error);
+  } catch (err) {
+    logger.error({ err, targetIndexName }, 'Error checking index existence');
   } finally {
     // targetClient.close();
   }

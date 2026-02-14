@@ -292,6 +292,9 @@ GET /_cluster/health
 Track ingestion progress using events:
 
 ```javascript
+const pino = require('pino');
+const logger = pino({ name: 'my-app', level: process.env.LOG_LEVEL || 'info' });
+
 const result = await transformer({
   /* options */
 });
@@ -299,10 +302,10 @@ const result = await transformer({
 let indexed = 0;
 result.events.on('indexed', count => {
   indexed += count;
-  console.log(`Indexed: ${indexed}`);
+  logger.info({ indexed }, 'Progress update');
 });
 
 result.events.on('complete', () => {
-  console.log(`Total: ${indexed} documents`);
+  logger.info({ indexed }, 'Ingestion complete');
 });
 ```
