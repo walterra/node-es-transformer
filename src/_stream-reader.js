@@ -14,11 +14,11 @@ export default function streamReaderFactory(indexer, stream, transform, splitReg
               return;
             }
 
-            const doc =
-              typeof transform === 'function' ? JSON.stringify(transform(JSON.parse(line))) : line;
+            const parsed = JSON.parse(line);
+            const doc = typeof transform === 'function' ? transform(parsed) : parsed;
 
-            // if doc is undefined we'll skip indexing it
-            if (typeof doc === 'undefined') {
+            // if doc is null/undefined we'll skip indexing it
+            if (doc === null || typeof doc === 'undefined') {
               s.resume();
               return;
             }
@@ -26,7 +26,10 @@ export default function streamReaderFactory(indexer, stream, transform, splitReg
             // the transform callback may return an array of docs so we can emit
             // multiple docs from a single line
             if (Array.isArray(doc)) {
-              doc.forEach(d => indexer.add(d));
+              doc.forEach(d => {
+                if (d === null || typeof d === 'undefined') return;
+                indexer.add(d);
+              });
               return;
             }
 
