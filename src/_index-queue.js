@@ -1,10 +1,8 @@
-import { Readable } from 'stream';
+import { PassThrough } from 'stream';
 
 import { DEFAULT_BUFFER_SIZE } from './_constants';
 
 const EventEmitter = require('events');
-
-const queueEmitter = new EventEmitter();
 
 const parallelCalls = 5;
 
@@ -15,14 +13,14 @@ export default function indexQueueFactory({
   bufferSize = DEFAULT_BUFFER_SIZE,
   skipHeader = false,
 }) {
+  const queueEmitter = new EventEmitter();
   let docsPerSecond = 0;
 
   const flushBytes = bufferSize * 1024; // Convert KB to Bytes
   const highWaterMark = flushBytes * parallelCalls;
 
-  // Create a Readable stream
-  const stream = new Readable({
-    read() {}, // Implement read but we manage pushing manually
+  // Create a PassThrough stream (readable + writable) for proper backpressure
+  const stream = new PassThrough({
     highWaterMark, // Buffer size for backpressure management
   });
 
@@ -43,16 +41,20 @@ export default function indexQueueFactory({
 
         // Yield each complete JSON object
         for (const line of lines) {
-          if (line.trim()) {
-            try {
-              if (!skipHeader || (skipHeader && !skippedHeader)) {
-                yield JSON.parse(line); // Parse and yield the JSON object
-                skippedHeader = true;
-              }
-            } catch (err) {
-              // Handle JSON parse errors if necessary
-              console.error('Failed to parse JSON:', err);
-            }
+          if (!line.trim()) {
+            continue;
+          }
+
+          if (skipHeader && !skippedHeader) {
+            skippedHeader = true;
+            continue;
+          }
+
+          try {
+            yield JSON.parse(line); // Parse and yield the JSON object
+          } catch (err) {
+            // Handle JSON parse errors if necessary
+            console.error('Failed to parse JSON:', err);
           }
         }
       }
@@ -130,7 +132,7 @@ export default function indexQueueFactory({
         throw new Error('Unexpected doc added after indexer should finish.');
       }
 
-      const canContinue = stream.push(`${JSON.stringify(doc)}\n`);
+      const canContinue = stream.write(`${JSON.stringify(doc)}\n`);
       if (!canContinue) {
         queueEmitter.emit('pause');
 
@@ -143,7 +145,7 @@ export default function indexQueueFactory({
     },
     finish: () => {
       finished = true;
-      stream.push(null);
+      stream.end();
     },
     queueEmitter,
   };
