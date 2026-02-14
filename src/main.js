@@ -6,6 +6,7 @@ import createMappingFactory from './_create-mapping';
 import fileReaderFactory from './_file-reader';
 import indexQueueFactory from './_index-queue';
 import indexReaderFactory from './_index-reader';
+import inferMappingsFromSource from './_infer-mappings';
 import streamReaderFactory from './_stream-reader';
 
 /**
@@ -94,6 +95,8 @@ export default async function transformer({
   targetIndexName,
   mappings,
   mappingsOverride = false,
+  inferMappings = false,
+  inferMappingsOptions = {},
   indexMappingTotalFieldsLimit,
   pipeline,
   populatedFields = false,
@@ -123,12 +126,24 @@ export default async function transformer({
     targetClientVersion,
   );
 
+  const resolvedMappings = await inferMappingsFromSource({
+    targetClient,
+    fileName,
+    sourceFormat,
+    csvOptions,
+    skipHeader,
+    mappings,
+    inferMappings,
+    inferMappingsOptions,
+    verbose,
+  });
+
   const createMapping = createMappingFactory({
     sourceClient,
     sourceIndexName,
     targetClient,
     targetIndexName,
-    mappings,
+    mappings: resolvedMappings,
     mappingsOverride,
     indexMappingTotalFieldsLimit,
     verbose,
