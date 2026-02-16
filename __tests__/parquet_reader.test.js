@@ -4,6 +4,32 @@ const path = require('path');
 
 const retry = require('async-retry');
 const parquet = require('@dsnp/parquetjs');
+const zlib = require('zlib');
+const { PARQUET_COMPRESSION_METHODS } = require('@dsnp/parquetjs/dist/lib/compression');
+
+function registerZstdCompression() {
+  if (PARQUET_COMPRESSION_METHODS.ZSTD) {
+    return;
+  }
+
+  if (
+    typeof zlib.zstdCompressSync !== 'function' ||
+    typeof zlib.zstdDecompressSync !== 'function'
+  ) {
+    throw new Error('ZSTD compression requires Node.js with zstd support.');
+  }
+
+  PARQUET_COMPRESSION_METHODS.ZSTD = {
+    deflate(value) {
+      return zlib.zstdCompressSync(value);
+    },
+    inflate(value) {
+      return zlib.zstdDecompressSync(value);
+    },
+  };
+}
+
+registerZstdCompression();
 
 const transformer = require('../dist/node-es-transformer.cjs');
 const deleteIndex = require('./utils/delete_index');
@@ -13,13 +39,16 @@ const client = getElasticsearchClient();
 
 const indexes = {
   single: 'parquet_file_reader_single',
+  noTransform: 'parquet_file_reader_no_transform',
   wildcard: 'parquet_file_reader_wildcard',
   stream: 'parquet_stream_reader',
+  zstd: 'parquet_file_reader_zstd',
 };
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'node-es-transformer-parquet-'));
 const sampleFile1 = path.join(tempDir, 'sample_data_parquet_1.parquet');
 const sampleFile2 = path.join(tempDir, 'sample_data_parquet_2.parquet');
+const sampleFileZstd = path.join(tempDir, 'sample_data_parquet_zstd.parquet');
 
 async function runTransformerAndWait(options) {
   const { events } = await transformer(options);
@@ -30,12 +59,16 @@ async function runTransformerAndWait(options) {
   });
 }
 
-async function createParquetFile(filePath, rows) {
+function buildField(type, compression) {
+  return compression ? { type, compression } : { type };
+}
+
+async function createParquetFile(filePath, rows, compression) {
   const schema = new parquet.ParquetSchema({
-    the_index: { type: 'INT64' },
-    code: { type: 'INT64' },
-    url: { type: 'UTF8' },
-    text: { type: 'UTF8' },
+    the_index: buildField('INT64', compression),
+    code: buildField('INT64', compression),
+    url: buildField('UTF8', compression),
+    text: buildField('UTF8', compression),
   });
 
   const writer = await parquet.ParquetWriter.openFile(schema, filePath);
@@ -87,12 +120,33 @@ describe('indexes parquet sources', () => {
         text: 'parquet-five',
       },
     ]);
+
+    await createParquetFile(
+      sampleFileZstd,
+      [
+        {
+          the_index: 6,
+          code: 600,
+          url: 'https://example.com/p6',
+          text: 'parquet-zstd-one',
+        },
+        {
+          the_index: 7,
+          code: 700,
+          url: 'https://example.com/p7',
+          text: 'parquet-zstd-two',
+        },
+      ],
+      'ZSTD',
+    );
   });
 
   afterAll(async () => {
     await deleteIndex(client, indexes.single)();
+    await deleteIndex(client, indexes.noTransform)();
     await deleteIndex(client, indexes.wildcard)();
     await deleteIndex(client, indexes.stream)();
+    await deleteIndex(client, indexes.zstd)();
     await client.close();
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -132,6 +186,69 @@ describe('indexes parquet sources', () => {
     });
   });
 
+  it('should index a parquet file without a transform', async () => {
+    await runTransformerAndWait({
+      fileName: sampleFile1,
+      sourceFormat: 'parquet',
+      targetIndexName: indexes.noTransform,
+      mappings: {
+        properties: {
+          the_index: { type: 'integer' },
+          code: { type: 'integer' },
+          url: { type: 'keyword' },
+          text: { type: 'keyword' },
+        },
+      },
+      verbose: false,
+    });
+
+    await client.indices.refresh({ index: indexes.noTransform });
+
+    await retry(async () => {
+      const res = await fetch(`${elasticsearchUrl}/${indexes.noTransform}/_search?q=the_index:2`);
+      expect(res.status).toBe(200);
+
+      const body = await res.json();
+      expect(body?.hits?.total?.value).toBe(1);
+      expect(body?.hits?.hits?.[0]?._source?.text).toBe('parquet-two');
+    });
+  });
+
+  it('should index a ZSTD-compressed parquet file', async () => {
+    await runTransformerAndWait({
+      fileName: sampleFileZstd,
+      sourceFormat: 'parquet',
+      targetIndexName: indexes.zstd,
+      mappings: {
+        properties: {
+          the_index: { type: 'integer' },
+          code: { type: 'integer' },
+          url: { type: 'keyword' },
+          text: { type: 'keyword' },
+        },
+      },
+      transform(doc) {
+        return {
+          ...doc,
+          the_index: Number(doc.the_index),
+          code: Number(doc.code),
+        };
+      },
+      verbose: false,
+    });
+
+    await client.indices.refresh({ index: indexes.zstd });
+
+    await retry(async () => {
+      const res = await fetch(`${elasticsearchUrl}/${indexes.zstd}/_search?q=the_index:6`);
+      expect(res.status).toBe(200);
+
+      const body = await res.json();
+      expect(body?.hits?.total?.value).toBe(1);
+      expect(body?.hits?.hits?.[0]?._source?.text).toBe('parquet-zstd-one');
+    });
+  });
+
   it('should index parquet files through wildcard patterns', async () => {
     await runTransformerAndWait({
       fileName: path.join(tempDir, 'sample_data_parquet_*.parquet'),
@@ -162,7 +279,7 @@ describe('indexes parquet sources', () => {
       expect(res.status).toBe(200);
 
       const body = await res.json();
-      expect(body?.count).toBe(5);
+      expect(body?.count).toBe(7);
     });
   });
 

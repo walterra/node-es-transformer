@@ -5,6 +5,26 @@ import { DEFAULT_BUFFER_SIZE } from './_constants';
 const EventEmitter = require('events');
 
 const parallelCalls = 5;
+const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
+
+function coerceBigInt(value) {
+  if (value >= MIN_SAFE_BIGINT && value <= MAX_SAFE_BIGINT) {
+    return Number(value);
+  }
+
+  return value.toString();
+}
+
+function safeStringify(doc) {
+  return JSON.stringify(doc, (_key, value) => {
+    if (typeof value === 'bigint') {
+      return coerceBigInt(value);
+    }
+
+    return value;
+  });
+}
 
 // a simple helper queue to bulk index documents
 export default function indexQueueFactory({
@@ -126,7 +146,7 @@ export default function indexQueueFactory({
         throw new Error('Unexpected doc added after indexer should finish.');
       }
 
-      const canContinue = stream.write(`${JSON.stringify(doc)}\n`);
+      const canContinue = stream.write(`${safeStringify(doc)}\n`);
       if (!canContinue) {
         queueEmitter.emit('pause');
 

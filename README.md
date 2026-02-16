@@ -344,6 +344,8 @@ Choose **one** of these sources:
 - **`sourceFormat`** (`'ndjson' | 'csv' | 'parquet' | 'arrow'`): Format for file/stream sources. Default: `'ndjson'`.
   - `arrow` expects Arrow IPC file/stream payloads.
   - `parquet` stream sources are currently buffered in memory before row iteration (file sources remain streaming by row cursor).
+  - `parquet` supports ZSTD-compressed files when running on Node.js 22+ (uses the built-in zlib zstd implementation).
+  - `parquet` INT64 values are normalized for JSON: safe-range values become numbers, larger values become strings.
 - **`csvOptions`** (object): CSV parser options (delimiter, quote, columns, etc.) used when `sourceFormat: 'csv'`.
 
 #### Client Configuration
