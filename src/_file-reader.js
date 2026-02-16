@@ -1,4 +1,4 @@
-import parquet from '@dsnp/parquetjs';
+import parquet from './_parquet';
 import * as arrow from 'apache-arrow';
 import fs from 'fs';
 import { parse } from 'csv-parse';
