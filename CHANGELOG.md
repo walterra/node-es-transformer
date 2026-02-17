@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+### Patch Changes
+
+- [#54](https://github.com/walterra/node-es-transformer/pull/54) [`02d3e18`](https://github.com/walterra/node-es-transformer/commit/02d3e183d29127dc233185417540080861e85eff) - Add ZSTD support for Parquet ingestion and normalize BigInt values during indexing
+
 ## 1.2.0
 
 ### Minor Changes
