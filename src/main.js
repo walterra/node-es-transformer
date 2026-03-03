@@ -142,6 +142,11 @@ export default async function transformer({
     logger: createChildLogger(logger, { component: 'mapping-inference' }),
   });
 
+  if (inferenceResult.detectedFormat === 'delimited' && sourceFormat !== 'csv') {
+    sourceFormat = 'csv';
+    logger.info('Switched sourceFormat to csv based on inferred structure');
+  }
+
   const createMapping = createMappingFactory({
     sourceClient,
     sourceIndexName,

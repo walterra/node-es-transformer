@@ -58,7 +58,7 @@ describe('mapping inference via _text_structure/find_structure', () => {
     await client.close();
   });
 
-  it('should infer mappings and apply inferred ingest pipeline', done => {
+  it('should infer mappings for CSV without applying ingest pipeline', done => {
     (async () => {
       const calls = [];
       const pipelineCalls = [];
@@ -83,8 +83,7 @@ describe('mapping inference via _text_structure/find_structure', () => {
         expect(calls[0].format).toBe('delimited');
         expect(typeof calls[0].body).toBe('string');
 
-        expect(pipelineCalls.length).toBe(1);
-        expect(pipelineCalls[0].id).toBe(`${inferredIndex}-inferred-pipeline`);
+        expect(pipelineCalls.length).toBe(0);
 
         await client.indices.refresh({ index: inferredIndex });
 
@@ -94,14 +93,6 @@ describe('mapping inference via _text_structure/find_structure', () => {
 
           const body = await res.json();
           expect(body?.count).toBe(3);
-
-          const pipelineRes = await fetch(
-            `${elasticsearchUrl}/${inferredIndex}/_search?q=inferred_pipeline_used:true`,
-          );
-          expect(pipelineRes.status).toBe(200);
-
-          const pipelineBody = await pipelineRes.json();
-          expect(pipelineBody?.hits?.total?.value).toBe(3);
         });
 
         done();

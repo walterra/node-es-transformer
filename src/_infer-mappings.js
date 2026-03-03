@@ -20,6 +20,7 @@ function emptyInferenceResult(mappings) {
   return {
     mappings,
     ingestPipeline: undefined,
+    detectedFormat: undefined,
   };
 }
 
@@ -80,8 +81,8 @@ export default async function inferMappingsFromSource({
     ...requestParams,
   };
 
-  if (typeof params.format === 'undefined') {
-    params.format = sourceFormat === 'csv' ? 'delimited' : 'ndjson';
+  if (typeof params.format === 'undefined' && sourceFormat !== 'ndjson') {
+    params.format = sourceFormat === 'csv' ? 'delimited' : sourceFormat;
   }
 
   if (sourceFormat === 'csv') {
@@ -104,18 +105,29 @@ export default async function inferMappingsFromSource({
 
   try {
     const response = await targetClient.textStructure.findStructure(params);
+    const detectedFormat = response?.format;
 
     if (response?.mappings) {
-      logger.info({ file: files[0] }, 'Inferred mappings via _text_structure/find_structure');
+      logger.info(
+        { file: files[0], detectedFormat },
+        'Inferred mappings via _text_structure/find_structure',
+      );
     }
 
-    if (response?.ingest_pipeline) {
+    const isDetectedCsv = detectedFormat === 'delimited';
+
+    if (response?.ingest_pipeline && isDetectedCsv) {
+      logger.info(
+        'Dropping inferred ingest pipeline for CSV — client-side parsing handles it',
+      );
+    } else if (response?.ingest_pipeline) {
       logger.info('Inferred ingest pipeline via _text_structure/find_structure');
     }
 
     return {
       mappings: response?.mappings || mappings,
-      ingestPipeline: response?.ingest_pipeline,
+      ingestPipeline: isDetectedCsv ? undefined : response?.ingest_pipeline,
+      detectedFormat,
     };
   } catch (err) {
     logger.warn({ err }, 'Could not infer mappings via _text_structure/find_structure');
