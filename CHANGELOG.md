@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2
+
+### Patch Changes
+
+- [#62](https://github.com/walterra/node-es-transformer/pull/62) [`238f525`](https://github.com/walterra/node-es-transformer/commit/238f5258054ffc809cd14a77d0ae2226fc2b3727) - Fix CSV mapping inference to skip ingest pipeline and auto-detect delimited format
+
 ## 1.2.1
 
 ### Patch Changes
