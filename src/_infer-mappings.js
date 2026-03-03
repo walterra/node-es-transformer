@@ -117,9 +117,7 @@ export default async function inferMappingsFromSource({
     const isDetectedCsv = detectedFormat === 'delimited';
 
     if (response?.ingest_pipeline && isDetectedCsv) {
-      logger.info(
-        'Dropping inferred ingest pipeline for CSV — client-side parsing handles it',
-      );
+      logger.info('Dropping inferred ingest pipeline for CSV — client-side parsing handles it');
     } else if (response?.ingest_pipeline) {
       logger.info('Inferred ingest pipeline via _text_structure/find_structure');
     }
