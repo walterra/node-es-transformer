@@ -2349,11 +2349,11 @@
     tslib "^2.8.0"
 
 "@testcontainers/elasticsearch@^11.11.0":
-  version "11.11.0"
-  resolved "https://registry.yarnpkg.com/@testcontainers/elasticsearch/-/elasticsearch-11.11.0.tgz#9e078b578543199eef82afa72b2cfeffa29364e1"
-  integrity sha512-ctgIMRERmqEcjTphWcXEGQkL0yJqjCksvBBdbGkcNsFe/nEyAZzvUk6Vwd5t7Soy5mfwFmqibamtNPoPW7aKDg==
+  version "11.12.0"
+  resolved "https://registry.yarnpkg.com/@testcontainers/elasticsearch/-/elasticsearch-11.12.0.tgz#0c69ea9227c7b89175a3cb24df36e81d334df410"
+  integrity sha512-piCdtqOf9VK1PVQ7xLqcDHdElCXDu6cpRuxro5QZxjsjMU8FOs99ct+o17vJaXSon2yTwxI3zRUa0KmflXfNWw==
   dependencies:
-    testcontainers "^11.11.0"
+    testcontainers "^11.12.0"
 
 "@tybys/wasm-util@^0.10.0":
   version "0.10.1"
@@ -6525,7 +6525,7 @@ test-exclude@^6.0.0:
     glob "^7.1.4"
     minimatch "^3.0.4"
 
-testcontainers@^11.11.0:
+testcontainers@^11.11.0, testcontainers@^11.12.0:
   version "11.12.0"
   resolved "https://registry.yarnpkg.com/testcontainers/-/testcontainers-11.12.0.tgz#2a2b9f9d20955f658959a44ed5ac0f2aedf7077a"
   integrity sha512-VWtH+UQejVYYvb53ohEZRbx2naxyDvwO9lQ6A0VgmVE2Oh8r9EF09I+BfmrXpd9N9ntpzhao9di2yNwibSz5KA==
