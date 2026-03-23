@@ -989,6 +989,14 @@
     dataloader "^1.4.0"
     node-fetch "^2.5.0"
 
+"@changesets/get-github-info@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@changesets/get-github-info/-/get-github-info-0.8.0.tgz#6921dcf3735239b9fbc413e5a111d81f9a65f66f"
+  integrity sha512-cRnC+xdF0JIik7coko3iUP9qbnfi1iJQ3sAa6dE+Tx3+ET8bjFEm63PA4WEohgjYcmsOikPHWzPsMWWiZmntOQ==
+  dependencies:
+    dataloader "^1.4.0"
+    node-fetch "^2.5.0"
+
 "@changesets/get-release-plan@^4.0.14":
   version "4.0.14"
   resolved "https://registry.yarnpkg.com/@changesets/get-release-plan/-/get-release-plan-4.0.14.tgz#4b03a13f7f8107d1a91500cdf020a6181af2ad32"
